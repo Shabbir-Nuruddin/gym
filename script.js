@@ -36,6 +36,8 @@ const routine = [
 let workoutHistory = JSON.parse(localStorage.getItem('auraHistory')) || [];
 let apiKey = localStorage.getItem('auraGeminiKey') || '';
 let currentDayId = 'chest';
+let workoutTimer = null;
+let workoutSeconds = 0;
 let volumeChartInstance = null;
 let chatHistory = [
     { role: 'user', parts: [{ text: "I am a beginner starting a 5-day workout split. Be my ruthless, hardcore, motivating AI personal trainer. Use short, punchy, aggressive motivation." }] },
@@ -222,11 +224,24 @@ function saveWorkout() {
         dayId: currentDayId,
         dayName: dayData.name,
         totalVolume: sessionVolume,
+        duration: workoutSeconds,
         exercises: exerciseLogs
     };
 
     workoutHistory.push(session);
     localStorage.setItem('auraHistory', JSON.stringify(workoutHistory));
+    
+    // Reset Timer
+    if (workoutTimer) {
+        clearInterval(workoutTimer);
+        workoutTimer = null;
+    }
+    workoutSeconds = 0;
+    document.getElementById('workout-timer-display').innerText = '00:00';
+    const timerBtn = document.getElementById('timer-toggle-btn');
+    timerBtn.innerText = 'START';
+    timerBtn.classList.remove('bg-gray-700', 'text-white');
+    timerBtn.classList.add('blood-bg', 'text-black');
     
     if(typeof playSuccess === 'function') playSuccess();
     updateDashboard();
@@ -286,10 +301,11 @@ function renderRecentLogs() {
     reversed.forEach(log => {
         const div = document.createElement('div');
         div.className = 'hardcore-panel p-4 flex justify-between items-center border-l-2 border-l-red-600';
+        const durStr = log.duration ? Math.floor(log.duration/60) + 'm ' + (log.duration%60) + 's' : '';
         div.innerHTML = `
             <div>
                 <p class="font-bebas text-xl text-white tracking-wider">${log.dayName}</p>
-                <p class="text-[10px] text-gray-500 font-bold uppercase">${new Date(log.date).toLocaleDateString()}</p>
+                <p class="text-[10px] text-gray-500 font-bold uppercase">${new Date(log.date).toLocaleDateString()} ${durStr ? '• ' + durStr : ''}</p>
             </div>
             <div class="text-right">
                 <p class="font-bebas text-red-500 text-2xl">${log.totalVolume.toLocaleString()} <span class="text-[12px] text-gray-500">KG</span></p>
@@ -456,4 +472,32 @@ function toggleMusic() {
         icon.className = 'fa-solid fa-volume-xmark text-gray-500';
     }
     playClick();
+}
+
+
+// ==========================================
+// WORKOUT TIMER
+// ==========================================
+function toggleTimer() {
+    const btn = document.getElementById('timer-toggle-btn');
+    if (workoutTimer) {
+        // Pause
+        clearInterval(workoutTimer);
+        workoutTimer = null;
+        btn.innerText = 'RESUME';
+        btn.classList.remove('bg-gray-700', 'text-white');
+        btn.classList.add('blood-bg', 'text-black');
+    } else {
+        // Start
+        workoutTimer = setInterval(() => {
+            workoutSeconds++;
+            const m = Math.floor(workoutSeconds / 60).toString().padStart(2, '0');
+            const s = (workoutSeconds % 60).toString().padStart(2, '0');
+            document.getElementById('workout-timer-display').innerText = m + ':' + s;
+        }, 1000);
+        btn.innerText = 'PAUSE';
+        btn.classList.remove('blood-bg', 'text-black');
+        btn.classList.add('bg-gray-700', 'text-white');
+    }
+    if(typeof playClick === 'function') playClick();
 }

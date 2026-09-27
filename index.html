@@ -178,9 +178,20 @@
                 <!-- Populated by JS -->
             </div>
 
-            <div class="mt-4 mb-6 flex justify-between items-end border-b border-red-900/50 pb-2">
+            <div class="mt-4 mb-4 flex justify-between items-end border-b border-red-900/50 pb-2">
                 <h2 class="text-3xl font-bebas tracking-wide text-white uppercase" id="current-workout-title">Select Day</h2>
                 <div class="text-[10px] bg-red-900/30 text-red-500 border border-red-900/50 px-2 py-1 uppercase font-bold tracking-widest">3 Sets Fixed</div>
+            </div>
+            
+            <!-- Timer UI -->
+            <div class="hardcore-panel p-4 mb-6 rounded-md flex justify-between items-center border border-red-900/50">
+                <div class="flex items-center gap-3">
+                    <i class="fa-solid fa-stopwatch text-2xl text-red-600"></i>
+                    <span id="workout-timer-display" class="font-bebas text-3xl tracking-widest text-white">00:00</span>
+                </div>
+                <button id="timer-toggle-btn" onclick="toggleTimer()" class="blood-bg text-black font-bebas tracking-wider px-4 py-2 rounded text-lg active:scale-95 transition-transform">
+                    START
+                </button>
             </div>
             
             <div id="exercise-list" class="space-y-6">
