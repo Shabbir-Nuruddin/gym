@@ -2,33 +2,33 @@
 const routine = [
     {
         id: 'chest',
-        name: 'Chest Day',
+        name: 'Chest',
         icon: 'fa-child-reaching',
-        exercises: ['Flat Chest Press', 'Incline Chest Press', 'Flat Chest Fly', 'Incline Chest Fly', 'Pushups']
+        exercises: ['Incline Chest Press', 'Flat Chest Press', 'Incline Chest Fly', 'Flat Chest Fly', 'Pushups']
     },
     {
         id: 'legs',
-        name: 'Leg Day',
+        name: 'Legs',
         icon: 'fa-shoe-prints',
-        exercises: ['Prisoner Squats', 'Chair Squats', 'Goblet Squats', 'Leg Extension', 'Lunges', 'Calf Raises']
+        exercises: ['Prisoner Squats', 'Chair Squats', 'Goblet Squats', 'Lunges', 'Calf Raises', 'Leg Extension']
     },
     {
         id: 'shoulders',
-        name: 'Shoulders',
+        name: 'Shoulder',
         icon: 'fa-person-arrow-up-from-line',
-        exercises: ['Shoulder Press', 'Lateral Raises (Side)', 'Lateral Raises (Front)']
+        exercises: ['Seated Shoulder Press (75-80°)', 'Side Lateral Raises', 'Front Raises', 'Dumbbell Shrugs', 'Placeholder: Shoulder']
     },
     {
         id: 'back',
-        name: 'Back Day',
+        name: 'Back',
         icon: 'fa-person-walking-luggage',
-        exercises: ['Lat Pulldown Machine', 'Reverse Grip Lat Pulldown', 'Seated Cable Row', 'Dumbbell Rows']
+        exercises: ['Machine Pulldown (Straight Grip)', 'Machine Pulldown (Reverse Grip)', 'One-Arm Dumbbell Row (Knee on bench)', 'Incline Back Press/Row', 'Placeholder: Back']
     },
     {
         id: 'arms',
         name: 'Arms (Bi/Tri)',
         icon: 'fa-hand-fist',
-        exercises: ['Dumbbell Bicep Curls', 'Hammer Curls', 'Tricep Rope Pushdowns', 'Overhead Tricep Extension']
+        exercises: ['Bicep Curl', 'Hammer Curl', 'Concentration Curl (Elbow on leg)', 'Overhead Tricep Extension (Both hands)', 'Bench Dips (Legs down)', 'Placeholder: Tricep']
     }
 ];
 
@@ -57,20 +57,18 @@ function switchTab(tabId) {
         if(el.id.startsWith('tab-')) el.classList.add('hidden');
     });
     document.getElementById(`tab-${tabId}`).classList.remove('hidden');
-
-    document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-    let activeNav = document.getElementById(`nav-${tabId}`);
-    if(activeNav) activeNav.classList.add('active');
-
-    // Bottom nav highlights
-    document.querySelectorAll('nav.fixed a').forEach(el => {
-        el.classList.remove('text-blue-500');
-        el.classList.add('text-gray-400');
+    
+    // Reset all nav buttons
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('text-blue-500');
+        btn.classList.add('text-gray-500');
     });
-    let activeBottom = document.querySelector(`nav.fixed a[onclick="switchTab('${tabId}')"]`);
-    if(activeBottom) {
-        activeBottom.classList.remove('text-gray-400');
-        activeBottom.classList.add('text-blue-500');
+    
+    // Activate target nav button
+    const activeBtn = document.querySelector(`.tab-btn[data-tab="${tabId}"]`);
+    if(activeBtn) {
+        activeBtn.classList.remove('text-gray-500');
+        activeBtn.classList.add('text-blue-500');
     }
 
     if(tabId === 'progress') {
@@ -80,13 +78,21 @@ function switchTab(tabId) {
 }
 
 function updateDashboard() {
+    // Gamification Logic
+    const XP_PER_WORKOUT = 100;
+    const totalXP = workoutHistory.length * XP_PER_WORKOUT;
+    const level = Math.floor(totalXP / 500) + 1;
+    const currentLevelXP = totalXP % 500;
+    const xpPercent = (currentLevelXP / 500) * 100;
+    
+    document.getElementById('hdr-level').innerText = level;
+    document.getElementById('dash-level').innerText = level;
+    document.getElementById('dash-xp').innerText = currentLevelXP;
+    document.getElementById('dash-xp-bar').style.width = `${xpPercent}%`;
+    
     document.getElementById('dash-workout-count').innerText = workoutHistory.length;
     let totalVol = workoutHistory.reduce((sum, session) => sum + session.totalVolume, 0);
-    document.getElementById('dash-total-volume').innerText = totalVol + ' kg';
-    
-    // Naive next workout: (history length % 5) index
-    let nextIndex = workoutHistory.length % 5;
-    document.getElementById('dash-next-workout').innerText = routine[nextIndex].name;
+    document.getElementById('dash-total-volume').innerText = totalVol.toLocaleString();
 }
 
 // Workout Logic
@@ -96,8 +102,10 @@ function renderRoutineTabs() {
     routine.forEach(day => {
         const btn = document.createElement('button');
         btn.onclick = () => selectDay(day.id);
-        btn.className = `whitespace-nowrap px-6 py-3 rounded-xl font-semibold transition-all ${day.id === currentDayId ? 'gradient-bg text-white shadow-lg shadow-blue-500/20' : 'bg-gray-800 text-gray-400 hover:bg-gray-700 hover:text-white'}`;
-        btn.innerHTML = `<i class="fa-solid ${day.icon} mr-2"></i> ${day.name}`;
+        const isActive = day.id === currentDayId;
+        
+        btn.className = `snap-center flex-shrink-0 flex flex-col items-center justify-center w-20 h-20 rounded-3xl transition-all ${isActive ? 'gradient-bg shadow-lg shadow-blue-500/30 text-white scale-105' : 'bg-gray-800 text-gray-400 opacity-70'}`;
+        btn.innerHTML = `<i class="fa-solid ${day.icon} text-2xl mb-1"></i><span class="text-[10px] font-bold uppercase tracking-wider">${day.name}</span>`;
         container.appendChild(btn);
     });
 }
@@ -116,13 +124,37 @@ function selectDay(dayId) {
     window.currentWorkoutSets = {};
     
     dayData.exercises.forEach((ex, index) => {
+        // Default 3 locked sets
         window.currentWorkoutSets[index] = [ { reps: 12, weight: '' }, { reps: 10, weight: '' }, { reps: 8, weight: '' } ];
         
         const div = document.createElement('div');
-        div.className = 'bg-gray-800/50 rounded-xl p-4 border border-gray-700/50';
-        div.id = `exercise-container-${index}`;
+        div.className = 'glass-panel rounded-3xl p-5 mb-4 shadow-md';
         
-        renderExerciseSets(index, ex, div);
+        let setsHtml = '';
+        window.currentWorkoutSets[index].forEach((set, sIndex) => {
+            setsHtml += `
+                <div class="flex items-center gap-3 mt-3">
+                    <div class="w-8 h-8 rounded-full bg-blue-500/20 text-blue-400 font-bold flex items-center justify-center text-xs flex-shrink-0">${sIndex + 1}</div>
+                    
+                    <div class="flex-1 relative">
+                        <input type="number" inputmode="decimal" placeholder="Reps" value="${set.reps}" oninput="updateSet(${index}, ${sIndex}, 'reps', this.value)" class="w-full bg-gray-900 border-none rounded-2xl py-3 pl-4 pr-2 text-lg font-bold text-white focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-600 transition-shadow">
+                        <span class="absolute right-3 top-3 text-xs text-gray-500 font-bold uppercase">Reps</span>
+                    </div>
+                    
+                    <div class="flex-1 relative">
+                        <input type="number" inputmode="decimal" placeholder="Weight" value="${set.weight}" oninput="updateSet(${index}, ${sIndex}, 'weight', this.value)" class="ex-weight w-full bg-gray-900 border-none rounded-2xl py-3 pl-4 pr-2 text-lg font-bold text-white focus:outline-none focus:ring-2 focus:ring-purple-500 placeholder-gray-600 transition-shadow">
+                        <span class="absolute right-3 top-3 text-xs text-gray-500 font-bold uppercase">KG</span>
+                    </div>
+                </div>
+            `;
+        });
+
+        div.innerHTML = `
+            <h3 class="font-poppins font-bold text-lg text-white mb-2 ml-1"><span class="text-blue-500 mr-1">${index + 1}.</span> ${ex}</h3>
+            <div class="flex flex-col gap-1">
+                ${setsHtml}
+            </div>
+        `;
         
         list.appendChild(div);
     });
@@ -130,56 +162,8 @@ function selectDay(dayId) {
     checkWorkoutValid();
 }
 
-function renderExerciseSets(exIndex, exName, container) {
-    let setsHtml = '';
-    window.currentWorkoutSets[exIndex].forEach((set, sIndex) => {
-        setsHtml += `
-            <div class="grid grid-cols-12 gap-2 items-center mt-2">
-                <div class="col-span-2 text-gray-400 text-sm font-semibold">Set ${sIndex + 1}</div>
-                <div class="col-span-4">
-                    <input type="number" min="0" placeholder="Reps" value="${set.reps}" oninput="updateSet(${exIndex}, ${sIndex}, 'reps', this.value)" class="w-full bg-gray-900 border border-gray-600 rounded p-2 text-center focus:border-blue-500 outline-none transition-colors">
-                </div>
-                <div class="col-span-1 text-center text-gray-500">x</div>
-                <div class="col-span-4">
-                    <input type="number" min="0" step="0.5" placeholder="kg" value="${set.weight}" oninput="updateSet(${exIndex}, ${sIndex}, 'weight', this.value)" class="ex-weight w-full bg-gray-900 border border-gray-600 rounded p-2 text-center focus:border-blue-500 outline-none transition-colors">
-                </div>
-                <div class="col-span-1 text-right">
-                    <button onclick="removeSet(${exIndex}, ${sIndex})" class="text-red-500/50 hover:text-red-500"><i class="fa-solid fa-xmark"></i></button>
-                </div>
-            </div>
-        `;
-    });
-
-    container.innerHTML = `
-        <div class="flex justify-between items-center mb-3">
-            <h3 class="font-bold text-lg text-blue-100">${exIndex + 1}. ${exName}</h3>
-            <button onclick="addSet(${exIndex})" class="text-xs bg-blue-500/20 text-blue-400 px-3 py-1 rounded-full hover:bg-blue-500/30 transition-colors">+ Add Set</button>
-        </div>
-        <div class="space-y-1">
-            ${setsHtml}
-        </div>
-    `;
-}
-
 window.updateSet = function(exIndex, sIndex, field, value) {
     window.currentWorkoutSets[exIndex][sIndex][field] = value;
-    checkWorkoutValid();
-};
-
-window.addSet = function(exIndex) {
-    const dayData = routine.find(d => d.id === currentDayId);
-    let defaultReps = 8;
-    const sets = window.currentWorkoutSets[exIndex];
-    if (sets.length > 0) defaultReps = sets[sets.length - 1].reps;
-    
-    sets.push({ reps: defaultReps, weight: '' });
-    renderExerciseSets(exIndex, dayData.exercises[exIndex], document.getElementById(`exercise-container-${exIndex}`));
-};
-
-window.removeSet = function(exIndex, sIndex) {
-    const dayData = routine.find(d => d.id === currentDayId);
-    window.currentWorkoutSets[exIndex].splice(sIndex, 1);
-    renderExerciseSets(exIndex, dayData.exercises[exIndex], document.getElementById(`exercise-container-${exIndex}`));
     checkWorkoutValid();
 };
 
@@ -193,10 +177,11 @@ function checkWorkoutValid() {
     
     const btn = document.getElementById('save-workout-btn');
     if(hasValue) {
-        btn.classList.remove('opacity-50', 'cursor-not-allowed');
+        btn.classList.remove('opacity-50');
+        // Prevent multiple bindings by assigning to property
         btn.onclick = saveWorkout;
     } else {
-        btn.classList.add('opacity-50', 'cursor-not-allowed');
+        btn.classList.add('opacity-50');
         btn.onclick = null;
     }
 }
@@ -247,35 +232,30 @@ function saveWorkout() {
     // Clear inputs by re-selecting the day
     selectDay(currentDayId);
     
-    alert(`Awesome job! You moved ${sessionVolume} kg today. Keep grinding!`);
+    switchTab('dashboard');
+    window.scrollTo(0,0);
 }
 
 // Progress Logic
 function initChart() {
     const ctx = document.getElementById('volumeChart').getContext('2d');
     volumeChartInstance = new Chart(ctx, {
-        type: 'line',
+        type: 'bar', // changed to bar for mobile clarity
         data: {
             labels: [],
             datasets: [{
-                label: 'Session Volume (kg)',
+                label: 'Volume (kg)',
                 data: [],
-                borderColor: '#3b82f6',
-                backgroundColor: 'rgba(59, 130, 246, 0.2)',
-                borderWidth: 3,
-                fill: true,
-                tension: 0.4,
-                pointBackgroundColor: '#8b5cf6',
-                pointBorderColor: '#fff',
-                pointRadius: 5
+                backgroundColor: 'rgba(59, 130, 246, 0.8)',
+                borderRadius: 4,
             }]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
             scales: {
-                y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.1)' }, ticks: { color: '#94a3b8' } },
-                x: { grid: { display: false }, ticks: { color: '#94a3b8' } }
+                y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8', font:{size: 10} } },
+                x: { grid: { display: false }, ticks: { color: '#94a3b8', font:{size: 10} } }
             },
             plugins: {
                 legend: { display: false }
@@ -304,19 +284,18 @@ function renderRecentLogs() {
     }
     
     container.innerHTML = '';
-    const reversed = [...workoutHistory].reverse().slice(0, 5); // show last 5
+    const reversed = [...workoutHistory].reverse().slice(0, 10);
     
     reversed.forEach(log => {
         const div = document.createElement('div');
-        div.className = 'bg-gray-800/40 p-4 rounded-lg border border-gray-700/50 flex justify-between items-center';
+        div.className = 'glass-panel p-4 rounded-2xl flex justify-between items-center';
         div.innerHTML = `
             <div>
-                <p class="font-bold text-white">${log.dayName}</p>
-                <p class="text-xs text-gray-400">${new Date(log.date).toLocaleDateString()}</p>
+                <p class="font-poppins font-bold text-white">${log.dayName}</p>
+                <p class="text-xs text-gray-400 font-bold">${new Date(log.date).toLocaleDateString()}</p>
             </div>
             <div class="text-right">
-                <p class="font-bold text-blue-400">${log.totalVolume} kg</p>
-                <p class="text-xs text-gray-500">${log.exercises.length} exercises</p>
+                <p class="font-bold text-blue-400 text-lg">${log.totalVolume.toLocaleString()} <span class="text-xs text-gray-500">KG</span></p>
             </div>
         `;
         container.appendChild(div);
@@ -344,7 +323,7 @@ document.getElementById('chat-form').addEventListener('submit', async (e) => {
     if(!text) return;
 
     if(!apiKey) {
-        alert("Please configure your Gemini API Key in the settings first.");
+        alert("Please configure your Gemini API Key in the settings (gear icon) first.");
         toggleApiSettings();
         return;
     }
@@ -359,12 +338,9 @@ document.getElementById('chat-form').addEventListener('submit', async (e) => {
     const loadingId = 'loading-' + Date.now();
     addChatMessage('ai', '<i class="fa-solid fa-spinner fa-spin"></i> Analyzing...', loadingId);
 
-    // Call Gemini API
     try {
-        // Inject current stats into prompt dynamically
         let statsContext = `Context: The user has logged ${workoutHistory.length} workouts. Total volume moved: ${workoutHistory.reduce((a,b)=>a+b.totalVolume,0)}kg. Their routine is 5 days (Chest, Legs, Shoulders, Back, Arms). Answer concisely and motivating as a personal trainer.`;
         
-        // Prepare payload (System instruction can be simulated by modifying the latest user prompt if API doesn't support it directly in this shape)
         let requestHistory = [...chatHistory];
         requestHistory[requestHistory.length-1].parts[0].text = `${statsContext}\n\nUser: ${text}`;
 
@@ -373,25 +349,20 @@ document.getElementById('chat-form').addEventListener('submit', async (e) => {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 contents: requestHistory,
-                generationConfig: {
-                    maxOutputTokens: 500,
-                    temperature: 0.7
-                }
+                generationConfig: { maxOutputTokens: 300, temperature: 0.7 }
             })
         });
 
-        if(!response.ok) throw new Error("API Error: " + response.statusText);
+        if(!response.ok) throw new Error("API Error");
         
         const data = await response.json();
         const reply = data.candidates[0].content.parts[0].text;
         
         chatHistory.push({ role: 'model', parts: [{ text: reply }] });
-        
         document.getElementById(loadingId).innerHTML = marked.parse(reply);
     } catch(err) {
-        console.error(err);
-        document.getElementById(loadingId).innerHTML = `<span class="text-red-400">Error: Could not reach the trainer. Check your API key or connection.</span>`;
-        chatHistory.pop(); // remove user message from history if failed so retry works
+        document.getElementById(loadingId).innerHTML = `<span class="text-red-400">Error connecting to AI.</span>`;
+        chatHistory.pop();
     }
     
     scrollToBottom();
@@ -400,20 +371,14 @@ document.getElementById('chat-form').addEventListener('submit', async (e) => {
 function addChatMessage(role, htmlContent, id = null) {
     const chatMsgs = document.getElementById('chat-messages');
     const div = document.createElement('div');
-    div.className = `chat-message ${role} p-4 max-w-[85%] ${role === 'user' ? 'ml-auto' : ''}`;
+    div.className = `p-4 max-w-[85%] text-sm rounded-2xl ${role === 'user' ? 'bg-blue-600 ml-auto rounded-tr-none text-white' : 'bg-purple-900/30 border border-purple-500/30 rounded-tl-none text-gray-200'}`;
     if(id) div.id = id;
     
-    let icon = role === 'user' ? '<i class="fa-solid fa-user"></i> You' : '<i class="fa-solid fa-robot"></i> Trainer';
-    let color = role === 'user' ? 'text-blue-400' : 'text-purple-400';
-    
-    div.innerHTML = `
-        <div class="flex items-center ${role === 'user' ? 'justify-end' : ''} gap-2 mb-2 font-semibold ${color}">
-            ${icon}
-        </div>
-        <div class="text-gray-200 markdown-body prose prose-invert max-w-none text-sm md:text-base">
-            ${role === 'user' ? htmlContent : marked.parse(htmlContent)}
-        </div>
-    `;
+    if(role === 'ai') {
+        div.innerHTML = `<div class="font-bold text-purple-300 mb-1"><i class="fa-solid fa-robot"></i> Aura AI</div><div class="prose prose-invert prose-sm">${htmlContent}</div>`;
+    } else {
+        div.innerHTML = htmlContent;
+    }
     
     chatMsgs.appendChild(div);
     scrollToBottom();
@@ -431,15 +396,11 @@ function initUI() {
 }
 
 function clearData() {
-    if(confirm('Are you sure you want to delete all workout history? This cannot be undone.')) {
+    if(confirm('Delete all data? This resets your level and history.')) {
         localStorage.removeItem('auraHistory');
         workoutHistory = [];
         updateDashboard();
         if(currentDayId) selectDay(currentDayId);
-        if(!document.getElementById('tab-progress').classList.contains('hidden')) {
-            updateProgressChart();
-            renderRecentLogs();
-        }
-        alert('Data reset successfully.');
+        switchTab('dashboard');
     }
 }

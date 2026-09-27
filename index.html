@@ -2,11 +2,13 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aura Gym Tracker & AI Trainer</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Aura Gym Tracker</title>
     <!-- PWA Meta Tags -->
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#0f172a">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/2964/2964098.png">
     
     <!-- Tailwind CSS -->
@@ -22,40 +24,39 @@
     <script>
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
-          navigator.serviceWorker.register('sw.js').then(reg => {
-            console.log('SW registered!', reg);
-          }).catch(err => console.log('SW registration failed', err));
+          navigator.serviceWorker.register('sw.js').catch(() => {});
         });
       }
     </script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Poppins:wght@400;600;800&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Poppins:wght@600;800&display=swap');
         
         :root {
             --bg-color: #0f172a;
             --surface-color: #1e293b;
-            --primary: #3b82f6; /* Blue */
-            --accent: #8b5cf6; /* Purple */
-            --text-main: #f8fafc;
-            --text-muted: #94a3b8;
+            --primary: #3b82f6;
+            --accent: #8b5cf6;
         }
 
         body {
             font-family: 'Inter', sans-serif;
             background-color: var(--bg-color);
-            color: var(--text-main);
-            overflow-x: hidden;
+            color: #f8fafc;
+            /* Disable pull-to-refresh on mobile */
+            overscroll-behavior-y: none;
+            -webkit-tap-highlight-color: transparent;
         }
 
-        h1, h2, h3, h4 {
+        h1, h2, h3, .font-poppins {
             font-family: 'Poppins', sans-serif;
         }
 
         .glass-panel {
-            background: rgba(30, 41, 59, 0.7);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+            background: rgba(30, 41, 59, 0.8);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
         }
 
         .gradient-text {
@@ -68,204 +69,139 @@
             background: linear-gradient(135deg, #3b82f6, #8b5cf6);
         }
 
-        .nav-item.active {
-            background: rgba(59, 130, 246, 0.2);
-            border-left: 4px solid var(--primary);
+        /* Large touch targets for mobile */
+        input[type="number"] {
+            font-size: 1.125rem;
+            padding: 0.75rem;
         }
 
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar {
-            width: 8px;
+        /* Hide Number Arrows */
+        input[type="number"]::-webkit-inner-spin-button, 
+        input[type="number"]::-webkit-outer-spin-button { 
+            -webkit-appearance: none; margin: 0; 
         }
-        ::-webkit-scrollbar-track {
-            background: var(--bg-color);
-        }
-        ::-webkit-scrollbar-thumb {
-            background: var(--surface-color);
-            border-radius: 4px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: var(--primary);
-        }
+        input[type="number"] { -moz-appearance: textfield; }
 
-        .chat-message.ai {
-            background: rgba(139, 92, 246, 0.1);
-            border: 1px solid rgba(139, 92, 246, 0.2);
-            border-radius: 12px 12px 12px 0;
-        }
-        .chat-message.user {
-            background: rgba(59, 130, 246, 0.1);
-            border: 1px solid rgba(59, 130, 246, 0.2);
-            border-radius: 12px 12px 0 12px;
-            text-align: right;
-        }
-
-        /* Animations */
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .animate-fade-in {
-            animation: fadeIn 0.4s ease-out forwards;
+        .pb-safe { padding-bottom: calc(5rem + env(safe-area-inset-bottom)); }
+        
+        .xp-bar {
+            transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
         }
     </style>
 </head>
-<body class="flex h-screen antialiased">
+<body class="flex flex-col h-screen antialiased overflow-hidden">
 
-    <!-- Sidebar -->
-    <aside class="w-64 glass-panel flex flex-col hidden md:flex z-10">
-        <div class="p-6 flex items-center gap-3">
-            <i class="fa-solid fa-dumbbell text-3xl text-blue-500"></i>
-            <h1 class="text-2xl font-bold tracking-wider gradient-text">AURA</h1>
+    <!-- Top Bar -->
+    <header class="glass-panel z-50 pt-safe px-5 py-4 flex justify-between items-center sticky top-0">
+        <div class="flex items-center gap-2">
+            <i class="fa-solid fa-bolt text-xl text-yellow-400"></i>
+            <h1 class="text-xl font-poppins tracking-wider gradient-text font-bold">AURA</h1>
         </div>
-        
-        <nav class="flex-1 mt-6">
-            <a href="#" onclick="switchTab('dashboard')" id="nav-dashboard" class="nav-item active flex items-center gap-4 px-6 py-4 text-gray-300 hover:text-white transition-colors">
-                <i class="fa-solid fa-chart-pie w-5"></i> Dashboard
-            </a>
-            <a href="#" onclick="switchTab('workouts')" id="nav-workouts" class="nav-item flex items-center gap-4 px-6 py-4 text-gray-300 hover:text-white transition-colors">
-                <i class="fa-solid fa-list-check w-5"></i> My Routine
-            </a>
-            <a href="#" onclick="switchTab('ai-trainer')" id="nav-ai-trainer" class="nav-item flex items-center gap-4 px-6 py-4 text-gray-300 hover:text-white transition-colors">
-                <i class="fa-solid fa-robot w-5"></i> AI Trainer
-            </a>
-            <a href="#" onclick="switchTab('progress')" id="nav-progress" class="nav-item flex items-center gap-4 px-6 py-4 text-gray-300 hover:text-white transition-colors">
-                <i class="fa-solid fa-arrow-trend-up w-5"></i> Progress
-            </a>
-        </nav>
-
-        <div class="p-6">
-            <button onclick="clearData()" class="w-full py-2 px-4 rounded-lg bg-red-900/30 text-red-400 hover:bg-red-900/50 transition-colors text-sm border border-red-900/50">
-                <i class="fa-solid fa-trash mr-2"></i> Reset Data
-            </button>
+        <div class="flex items-center gap-3">
+            <div class="text-right">
+                <div class="text-xs font-bold text-gray-400 uppercase tracking-widest">Level <span id="hdr-level" class="text-white">1</span></div>
+            </div>
+            <div class="w-10 h-10 rounded-full gradient-bg flex items-center justify-center font-bold shadow-lg shadow-purple-500/30">
+                <i class="fa-solid fa-crown text-white text-sm"></i>
+            </div>
         </div>
-    </aside>
-
-    <!-- Mobile Nav (Bottom) -->
-    <nav class="md:hidden fixed bottom-0 w-full glass-panel flex justify-around p-3 z-50">
-        <a href="#" onclick="switchTab('dashboard')" class="text-blue-500 flex flex-col items-center"><i class="fa-solid fa-chart-pie text-xl"></i><span class="text-[10px] mt-1">Dash</span></a>
-        <a href="#" onclick="switchTab('workouts')" class="text-gray-400 flex flex-col items-center"><i class="fa-solid fa-list-check text-xl"></i><span class="text-[10px] mt-1">Workout</span></a>
-        <a href="#" onclick="switchTab('ai-trainer')" class="text-gray-400 flex flex-col items-center"><i class="fa-solid fa-robot text-xl"></i><span class="text-[10px] mt-1">AI</span></a>
-        <a href="#" onclick="switchTab('progress')" class="text-gray-400 flex flex-col items-center"><i class="fa-solid fa-arrow-trend-up text-xl"></i><span class="text-[10px] mt-1">Progress</span></a>
-    </nav>
+    </header>
 
     <!-- Main Content -->
-    <main class="flex-1 flex flex-col h-screen overflow-y-auto relative pb-20 md:pb-0">
+    <main class="flex-1 overflow-y-auto pb-safe px-4 py-6 w-full max-w-md mx-auto no-scrollbar">
         
         <!-- Dashboard Tab -->
-        <div id="tab-dashboard" class="p-6 md:p-10 animate-fade-in flex-1">
-            <header class="mb-10">
-                <h2 class="text-sm font-semibold text-blue-500 tracking-widest uppercase mb-1">Welcome Back</h2>
-                <h1 class="text-4xl font-bold">Ready to <span class="gradient-text">level up?</span></h1>
-            </header>
-
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-                <div class="glass-panel p-6 rounded-2xl flex items-center gap-4">
-                    <div class="w-12 h-12 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-500 text-xl">
-                        <i class="fa-solid fa-fire"></i>
-                    </div>
-                    <div>
-                        <p class="text-gray-400 text-sm">Workouts Logged</p>
-                        <p class="text-2xl font-bold" id="dash-workout-count">0</p>
-                    </div>
+        <div id="tab-dashboard" class="animate-fade-in flex flex-col gap-6">
+            
+            <!-- Gamification Card -->
+            <div class="glass-panel p-6 rounded-3xl relative overflow-hidden">
+                <div class="absolute -right-10 -top-10 w-32 h-32 bg-purple-500/20 rounded-full blur-2xl"></div>
+                <h2 class="text-sm font-semibold text-purple-400 uppercase tracking-wider mb-1">Aura Rank</h2>
+                <div class="flex justify-between items-end mb-3">
+                    <h1 class="text-4xl font-poppins font-bold">Lvl <span id="dash-level">1</span></h1>
+                    <span class="text-sm text-gray-400 font-semibold"><span id="dash-xp">0</span> / <span id="dash-xp-next">500</span> XP</span>
                 </div>
-                <div class="glass-panel p-6 rounded-2xl flex items-center gap-4">
-                    <div class="w-12 h-12 rounded-full bg-purple-500/20 flex items-center justify-center text-purple-500 text-xl">
+                <div class="h-3 w-full bg-gray-800 rounded-full overflow-hidden mb-2 shadow-inner">
+                    <div id="dash-xp-bar" class="xp-bar h-full gradient-bg w-0 rounded-full"></div>
+                </div>
+                <p class="text-xs text-gray-400 mt-2 text-center" id="dash-xp-msg">Log workouts to level up!</p>
+            </div>
+
+            <!-- Stats Grid -->
+            <div class="grid grid-cols-2 gap-4">
+                <div class="glass-panel p-5 rounded-3xl flex flex-col items-center justify-center text-center gap-2">
+                    <div class="w-12 h-12 rounded-full bg-blue-500/20 text-blue-400 flex items-center justify-center text-xl mb-1">
+                        <i class="fa-solid fa-dumbbell"></i>
+                    </div>
+                    <p class="text-2xl font-bold" id="dash-workout-count">0</p>
+                    <p class="text-xs text-gray-400 font-semibold uppercase">Workouts</p>
+                </div>
+                <div class="glass-panel p-5 rounded-3xl flex flex-col items-center justify-center text-center gap-2">
+                    <div class="w-12 h-12 rounded-full bg-green-500/20 text-green-400 flex items-center justify-center text-xl mb-1">
                         <i class="fa-solid fa-weight-hanging"></i>
                     </div>
-                    <div>
-                        <p class="text-gray-400 text-sm">Total Volume</p>
-                        <p class="text-2xl font-bold" id="dash-total-volume">0 kg</p>
-                    </div>
-                </div>
-                <div class="glass-panel p-6 rounded-2xl flex items-center gap-4">
-                    <div class="w-12 h-12 rounded-full bg-green-500/20 flex items-center justify-center text-green-500 text-xl">
-                        <i class="fa-solid fa-calendar-check"></i>
-                    </div>
-                    <div>
-                        <p class="text-gray-400 text-sm">Next Up</p>
-                        <p class="text-lg font-bold truncate" id="dash-next-workout">Chest Day</p>
-                    </div>
+                    <p class="text-2xl font-bold" id="dash-total-volume">0</p>
+                    <p class="text-xs text-gray-400 font-semibold uppercase">Total Vol (kg)</p>
                 </div>
             </div>
 
-            <div class="glass-panel rounded-2xl p-8 relative overflow-hidden">
-                <div class="absolute top-0 right-0 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none"></div>
-                <h3 class="text-2xl font-bold mb-4 z-10 relative">Today's Motivation</h3>
-                <p class="text-gray-300 italic text-lg z-10 relative border-l-4 border-blue-500 pl-4 py-1">"The only bad workout is the one that didn't happen. As a beginner, consistency is your greatest weapon."</p>
-                <button onclick="switchTab('workouts')" class="mt-6 gradient-bg px-6 py-3 rounded-lg font-semibold shadow-lg shadow-blue-500/25 hover:scale-105 transition-transform z-10 relative">
-                    Start Workout <i class="fa-solid fa-arrow-right ml-2"></i>
-                </button>
-            </div>
+            <button onclick="switchTab('workouts')" class="w-full gradient-bg p-5 rounded-3xl font-poppins font-bold text-lg shadow-lg shadow-blue-500/20 active:scale-95 transition-transform flex justify-center items-center gap-3">
+                Start Next Workout <i class="fa-solid fa-play"></i>
+            </button>
         </div>
 
         <!-- Workouts Tab -->
-        <div id="tab-workouts" class="p-6 md:p-10 animate-fade-in hidden flex-1">
-            <header class="mb-8">
-                <h1 class="text-3xl font-bold mb-2">My Routine</h1>
-                <p class="text-gray-400">Your personalized 5-day split</p>
-            </header>
-
-            <div class="flex gap-2 overflow-x-auto pb-4 mb-6 custom-scrollbar" id="day-selector">
+        <div id="tab-workouts" class="animate-fade-in hidden">
+            
+            <div class="flex gap-3 overflow-x-auto pb-4 no-scrollbar -mx-4 px-4 snap-x" id="day-selector">
                 <!-- Populated by JS -->
             </div>
 
-            <div class="glass-panel rounded-2xl p-6 relative">
-                <div class="flex justify-between items-center mb-6 border-b border-gray-700 pb-4">
-                    <h2 class="text-2xl font-bold text-white" id="current-workout-title">Select a day</h2>
-                </div>
-                
-                <div id="exercise-list" class="space-y-6">
-                    <!-- Populated by JS -->
-                </div>
+            <div class="mt-2 mb-6 flex justify-between items-center">
+                <h2 class="text-2xl font-poppins font-bold" id="current-workout-title">Select Day</h2>
+                <div class="text-xs bg-gray-800 text-gray-400 px-3 py-1 rounded-full font-bold">3 Sets Fixed</div>
+            </div>
+            
+            <div id="exercise-list" class="space-y-5">
+                <!-- Populated by JS -->
+            </div>
 
-                <div class="mt-8 text-right">
-                    <button id="save-workout-btn" class="gradient-bg px-8 py-3 rounded-xl font-bold shadow-lg hover:shadow-xl hover:scale-105 transition-all opacity-50 cursor-not-allowed">
-                        <i class="fa-solid fa-check mr-2"></i> Finish & Log Workout
-                    </button>
-                </div>
+            <div class="mt-8 mb-4">
+                <button id="save-workout-btn" class="w-full gradient-bg p-5 rounded-3xl font-poppins font-bold text-lg shadow-lg opacity-50 transition-all">
+                    Finish & Gain XP <i class="fa-solid fa-bolt ml-2 text-yellow-300"></i>
+                </button>
             </div>
         </div>
 
         <!-- AI Trainer Tab -->
-        <div id="tab-ai-trainer" class="p-6 md:p-10 animate-fade-in hidden flex-1 flex flex-col h-full max-h-screen">
-            <header class="mb-6 flex justify-between items-end flex-shrink-0">
-                <div>
-                    <h1 class="text-3xl font-bold mb-2">AI Personal Trainer</h1>
-                    <p class="text-gray-400">Powered by Gemini. Ask for form checks, progression advice, or motivation.</p>
-                </div>
-                <button onclick="toggleApiSettings()" class="text-gray-400 hover:text-white transition-colors">
-                    <i class="fa-solid fa-gear text-xl"></i>
-                </button>
-            </header>
-
+        <div id="tab-ai-trainer" class="animate-fade-in hidden flex flex-col h-[calc(100vh-140px)]">
+            
             <!-- API Key Settings -->
-            <div id="api-settings" class="glass-panel p-6 rounded-2xl mb-6 hidden flex-shrink-0 animate-fade-in">
-                <h3 class="font-bold mb-2 text-blue-400"><i class="fa-solid fa-key mr-2"></i> Gemini API Configuration</h3>
-                <p class="text-sm text-gray-400 mb-4">Your key is stored locally in your browser. Get one free from Google AI Studio.</p>
-                <div class="flex gap-3">
-                    <input type="password" id="api-key-input" placeholder="AIzaSy..." class="flex-1 bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500 text-white">
-                    <button onclick="saveApiKey()" class="bg-blue-600 hover:bg-blue-500 px-6 py-2 rounded-lg font-semibold transition-colors">Save</button>
+            <div id="api-settings" class="glass-panel p-5 rounded-2xl mb-4 hidden flex-shrink-0">
+                <h3 class="font-bold mb-2 text-blue-400 text-sm uppercase tracking-wide"><i class="fa-solid fa-key mr-2"></i> Setup API Key</h3>
+                <div class="flex gap-2">
+                    <input type="password" id="api-key-input" placeholder="AIzaSy..." class="flex-1 bg-gray-900 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <button onclick="saveApiKey()" class="bg-blue-600 px-4 py-2 rounded-xl font-bold">Save</button>
                 </div>
             </div>
 
             <!-- Chat Area -->
-            <div class="glass-panel rounded-2xl flex-1 flex flex-col overflow-hidden">
-                <div id="chat-messages" class="flex-1 overflow-y-auto p-6 space-y-4">
-                    <div class="chat-message ai p-4 max-w-[85%]">
-                        <div class="flex items-center gap-2 mb-2 font-semibold text-purple-400">
-                            <i class="fa-solid fa-robot"></i> Trainer
-                        </div>
-                        <div class="text-gray-200">
-                            What's up! I'm your AI personal trainer. I see your 5-day split. How are you feeling today? Need help adjusting weights, checking form tips, or a pep talk?
-                        </div>
+            <div class="glass-panel rounded-3xl flex-1 flex flex-col overflow-hidden shadow-xl shadow-purple-900/10 relative">
+                <div class="absolute top-4 right-4 z-10">
+                    <button onclick="toggleApiSettings()" class="w-8 h-8 rounded-full bg-gray-800/80 flex items-center justify-center text-gray-400"><i class="fa-solid fa-gear text-xs"></i></button>
+                </div>
+                
+                <div id="chat-messages" class="flex-1 overflow-y-auto p-4 space-y-4 pt-12">
+                    <div class="bg-purple-900/30 border border-purple-500/30 rounded-2xl rounded-tl-none p-4 max-w-[85%] text-sm">
+                        <div class="font-bold text-purple-300 mb-1"><i class="fa-solid fa-robot"></i> Aura AI</div>
+                        <div class="text-gray-100">Hey boss! Ready to push some heavy circles? Log your sets in the routine tab, and ask me anything about your form, progress, or diet here!</div>
                     </div>
                 </div>
                 
-                <div class="p-4 border-t border-gray-700 bg-gray-800/50">
-                    <form id="chat-form" class="flex gap-3">
-                        <input type="text" id="chat-input" placeholder="Ask your trainer something..." class="flex-1 bg-gray-900 border border-gray-700 rounded-xl px-5 py-3 focus:outline-none focus:border-purple-500 text-white transition-colors">
-                        <button type="submit" class="gradient-bg px-6 rounded-xl font-bold shadow-lg hover:shadow-xl transition-all flex items-center justify-center">
+                <div class="p-3 bg-gray-800/80 backdrop-blur-md">
+                    <form id="chat-form" class="flex gap-2">
+                        <input type="text" id="chat-input" placeholder="Ask AI Trainer..." class="flex-1 bg-gray-900 rounded-full px-5 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 transition-shadow">
+                        <button type="submit" class="w-12 h-12 rounded-full gradient-bg flex items-center justify-center shadow-lg active:scale-95 transition-transform flex-shrink-0">
                             <i class="fa-solid fa-paper-plane"></i>
                         </button>
                     </form>
@@ -274,31 +210,42 @@
         </div>
 
         <!-- Progress Tab -->
-        <div id="tab-progress" class="p-6 md:p-10 animate-fade-in hidden flex-1">
-            <header class="mb-8">
-                <h1 class="text-3xl font-bold mb-2">My Growth</h1>
-                <p class="text-gray-400">Track your volume and consistency over time</p>
-            </header>
+        <div id="tab-progress" class="animate-fade-in hidden">
+            <h2 class="text-2xl font-poppins font-bold mb-6">Progress Log</h2>
 
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <div class="glass-panel p-6 rounded-2xl">
-                    <h3 class="text-xl font-bold mb-4">Total Volume History (kg)</h3>
-                    <div class="h-64">
-                        <canvas id="volumeChart"></canvas>
-                    </div>
+            <div class="glass-panel p-5 rounded-3xl mb-6">
+                <h3 class="text-sm font-bold text-gray-400 uppercase mb-4">Volume Over Time</h3>
+                <div class="h-48 w-full">
+                    <canvas id="volumeChart"></canvas>
                 </div>
-                
-                <div class="glass-panel p-6 rounded-2xl">
-                    <h3 class="text-xl font-bold mb-4">Recent Logs</h3>
-                    <div id="recent-logs" class="space-y-3 overflow-y-auto max-h-64 pr-2">
-                        <!-- Populated by JS -->
-                        <p class="text-gray-500 italic text-center py-8">No workouts logged yet. Go crush a session!</p>
-                    </div>
-                </div>
+            </div>
+            
+            <div class="mb-4 flex justify-between items-center">
+                <h3 class="text-lg font-bold">Past Workouts</h3>
+                <button onclick="clearData()" class="text-xs text-red-400 font-bold bg-red-400/10 px-3 py-1 rounded-full"><i class="fa-solid fa-trash"></i> Reset</button>
+            </div>
+            <div id="recent-logs" class="space-y-4">
+                <!-- Populated by JS -->
             </div>
         </div>
 
     </main>
+
+    <!-- Bottom Nav -->
+    <nav class="fixed bottom-0 w-full glass-panel pb-safe pt-2 px-6 flex justify-between z-50 rounded-t-3xl border-t border-gray-700/50">
+        <button onclick="switchTab('dashboard')" class="flex flex-col items-center p-2 text-blue-500 w-16 tab-btn" data-tab="dashboard">
+            <i class="fa-solid fa-chart-pie text-xl mb-1"></i><span class="text-[10px] font-bold">Dash</span>
+        </button>
+        <button onclick="switchTab('workouts')" class="flex flex-col items-center p-2 text-gray-500 w-16 tab-btn" data-tab="workouts">
+            <i class="fa-solid fa-dumbbell text-xl mb-1"></i><span class="text-[10px] font-bold">Train</span>
+        </button>
+        <button onclick="switchTab('ai-trainer')" class="flex flex-col items-center p-2 text-gray-500 w-16 tab-btn" data-tab="ai-trainer">
+            <i class="fa-solid fa-robot text-xl mb-1"></i><span class="text-[10px] font-bold">AI</span>
+        </button>
+        <button onclick="switchTab('progress')" class="flex flex-col items-center p-2 text-gray-500 w-16 tab-btn" data-tab="progress">
+            <i class="fa-solid fa-chart-simple text-xl mb-1"></i><span class="text-[10px] font-bold">Stats</span>
+        </button>
+    </nav>
 
     <script src="script.js"></script>
 </body>
