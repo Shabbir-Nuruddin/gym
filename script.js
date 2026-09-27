@@ -112,40 +112,84 @@ function selectDay(dayId) {
     const list = document.getElementById('exercise-list');
     list.innerHTML = '';
     
+    // Store active sets state
+    window.currentWorkoutSets = {};
+    
     dayData.exercises.forEach((ex, index) => {
+        window.currentWorkoutSets[index] = [ { reps: 12, weight: '' }, { reps: 10, weight: '' }, { reps: 8, weight: '' } ];
+        
         const div = document.createElement('div');
         div.className = 'bg-gray-800/50 rounded-xl p-4 border border-gray-700/50';
-        div.innerHTML = `
-            <h3 class="font-bold text-lg mb-3 text-blue-100">${index + 1}. ${ex}</h3>
-            <div class="grid grid-cols-3 gap-3">
-                <div>
-                    <label class="text-xs text-gray-400 uppercase tracking-wide">Sets</label>
-                    <input type="number" min="0" value="3" class="ex-sets w-full bg-gray-900 border border-gray-600 rounded p-2 mt-1 text-center focus:border-blue-500 outline-none transition-colors">
-                </div>
-                <div>
-                    <label class="text-xs text-gray-400 uppercase tracking-wide">Reps</label>
-                    <input type="number" min="0" value="10" class="ex-reps w-full bg-gray-900 border border-gray-600 rounded p-2 mt-1 text-center focus:border-blue-500 outline-none transition-colors">
-                </div>
-                <div>
-                    <label class="text-xs text-gray-400 uppercase tracking-wide">Weight (kg)</label>
-                    <input type="number" min="0" step="0.5" placeholder="e.g. 20" class="ex-weight w-full bg-gray-900 border border-gray-600 rounded p-2 mt-1 text-center focus:border-blue-500 outline-none transition-colors">
-                </div>
-            </div>
-        `;
-        // Listen for inputs to enable save button
-        div.querySelectorAll('input').forEach(input => {
-            input.addEventListener('input', checkWorkoutValid);
-        });
+        div.id = `exercise-container-${index}`;
+        
+        renderExerciseSets(index, ex, div);
+        
         list.appendChild(div);
     });
 
     checkWorkoutValid();
 }
 
+function renderExerciseSets(exIndex, exName, container) {
+    let setsHtml = '';
+    window.currentWorkoutSets[exIndex].forEach((set, sIndex) => {
+        setsHtml += `
+            <div class="grid grid-cols-12 gap-2 items-center mt-2">
+                <div class="col-span-2 text-gray-400 text-sm font-semibold">Set ${sIndex + 1}</div>
+                <div class="col-span-4">
+                    <input type="number" min="0" placeholder="Reps" value="${set.reps}" oninput="updateSet(${exIndex}, ${sIndex}, 'reps', this.value)" class="w-full bg-gray-900 border border-gray-600 rounded p-2 text-center focus:border-blue-500 outline-none transition-colors">
+                </div>
+                <div class="col-span-1 text-center text-gray-500">x</div>
+                <div class="col-span-4">
+                    <input type="number" min="0" step="0.5" placeholder="kg" value="${set.weight}" oninput="updateSet(${exIndex}, ${sIndex}, 'weight', this.value)" class="ex-weight w-full bg-gray-900 border border-gray-600 rounded p-2 text-center focus:border-blue-500 outline-none transition-colors">
+                </div>
+                <div class="col-span-1 text-right">
+                    <button onclick="removeSet(${exIndex}, ${sIndex})" class="text-red-500/50 hover:text-red-500"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+            </div>
+        `;
+    });
+
+    container.innerHTML = `
+        <div class="flex justify-between items-center mb-3">
+            <h3 class="font-bold text-lg text-blue-100">${exIndex + 1}. ${exName}</h3>
+            <button onclick="addSet(${exIndex})" class="text-xs bg-blue-500/20 text-blue-400 px-3 py-1 rounded-full hover:bg-blue-500/30 transition-colors">+ Add Set</button>
+        </div>
+        <div class="space-y-1">
+            ${setsHtml}
+        </div>
+    `;
+}
+
+window.updateSet = function(exIndex, sIndex, field, value) {
+    window.currentWorkoutSets[exIndex][sIndex][field] = value;
+    checkWorkoutValid();
+};
+
+window.addSet = function(exIndex) {
+    const dayData = routine.find(d => d.id === currentDayId);
+    let defaultReps = 8;
+    const sets = window.currentWorkoutSets[exIndex];
+    if (sets.length > 0) defaultReps = sets[sets.length - 1].reps;
+    
+    sets.push({ reps: defaultReps, weight: '' });
+    renderExerciseSets(exIndex, dayData.exercises[exIndex], document.getElementById(`exercise-container-${exIndex}`));
+};
+
+window.removeSet = function(exIndex, sIndex) {
+    const dayData = routine.find(d => d.id === currentDayId);
+    window.currentWorkoutSets[exIndex].splice(sIndex, 1);
+    renderExerciseSets(exIndex, dayData.exercises[exIndex], document.getElementById(`exercise-container-${exIndex}`));
+    checkWorkoutValid();
+};
+
 function checkWorkoutValid() {
-    const weights = document.querySelectorAll('.ex-weight');
     let hasValue = false;
-    weights.forEach(w => { if(w.value > 0) hasValue = true; });
+    Object.values(window.currentWorkoutSets).forEach(sets => {
+        sets.forEach(set => {
+            if(parseFloat(set.weight) > 0) hasValue = true;
+        });
+    });
     
     const btn = document.getElementById('save-workout-btn');
     if(hasValue) {
@@ -162,20 +206,28 @@ function saveWorkout() {
     let sessionVolume = 0;
     let exerciseLogs = [];
 
-    const exerciseDivs = document.getElementById('exercise-list').children;
-    
-    for(let i=0; i<exerciseDivs.length; i++) {
-        const name = dayData.exercises[i];
-        const sets = parseFloat(exerciseDivs[i].querySelector('.ex-sets').value) || 0;
-        const reps = parseFloat(exerciseDivs[i].querySelector('.ex-reps').value) || 0;
-        const weight = parseFloat(exerciseDivs[i].querySelector('.ex-weight').value) || 0;
+    Object.keys(window.currentWorkoutSets).forEach(exIndexStr => {
+        const exIndex = parseInt(exIndexStr);
+        const name = dayData.exercises[exIndex];
+        const sets = window.currentWorkoutSets[exIndex];
         
-        const vol = sets * reps * weight;
-        if(vol > 0) {
-            sessionVolume += vol;
-            exerciseLogs.push({ name, sets, reps, weight, vol });
+        let exVolume = 0;
+        let validSets = [];
+        
+        sets.forEach(set => {
+            const r = parseFloat(set.reps) || 0;
+            const w = parseFloat(set.weight) || 0;
+            if(w > 0 && r > 0) {
+                exVolume += (r * w);
+                validSets.push({ reps: r, weight: w });
+            }
+        });
+        
+        if (exVolume > 0) {
+            sessionVolume += exVolume;
+            exerciseLogs.push({ name, sets: validSets, vol: exVolume });
         }
-    }
+    });
 
     if(sessionVolume === 0) return;
 
@@ -192,9 +244,8 @@ function saveWorkout() {
     
     updateDashboard();
     
-    // Clear inputs
-    document.querySelectorAll('.ex-weight').forEach(w => w.value = '');
-    checkWorkoutValid();
+    // Clear inputs by re-selecting the day
+    selectDay(currentDayId);
     
     alert(`Awesome job! You moved ${sessionVolume} kg today. Keep grinding!`);
 }
