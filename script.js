@@ -16,7 +16,7 @@ const routine = [
         id: 'shoulders',
         name: 'Shoulder',
         icon: 'fa-person-arrow-up-from-line',
-        exercises: ['Seated Shoulder Press (75-80°)', 'Side Lateral Raises', 'Front Raises', 'Dumbbell Shrugs', 'Placeholder: Shoulder']
+        exercises: ['Seated Shoulder Press (75-80°)', 'Side Lateral Raises', 'Front Raises', 'Dumbbell Shrugs']
     },
     {
         id: 'back',
@@ -28,7 +28,7 @@ const routine = [
         id: 'arms',
         name: 'Arms & Abs',
         icon: 'fa-hand-fist',
-        exercises: ['Bicep Curl', 'Hammer Curl', 'Concentration Curl (Elbow on leg)', 'Overhead Tricep Extension (Both hands)', 'Bench Dips (Legs down)', 'Placeholder: Tricep', 'Weighted Decline Crunches', 'Russian Twists (With Weight)', 'Bicycle Crunches']
+        exercises: ['Bicep Curl', 'Hammer Curl', 'Concentration Curl (Elbow on leg)', 'Overhead Tricep Extension (Both hands)', 'Bench Dips (Legs down)', 'Placeholder: Tricep', 'Weighted Flat Crunches (Knees Bent)', 'Russian Twists (With Weight)', 'Bicycle Crunches']
     }
 ];
 
