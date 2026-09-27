@@ -8,9 +8,9 @@ const routine = [
     },
     {
         id: 'legs',
-        name: 'Legs',
+        name: 'Legs & Abs',
         icon: 'fa-shoe-prints',
-        exercises: ['Prisoner Squats', 'Chair Squats', 'Goblet Squats', 'Lunges', 'Calf Raises', 'Leg Extension']
+        exercises: ['Prisoner Squats', 'Chair Squats', 'Goblet Squats', 'Lunges', 'Calf Raises', 'Leg Extension', 'Cable Crunches (Heavy)', 'Hanging Knee Raises', 'Planks (Log seconds as Reps)']
     },
     {
         id: 'shoulders',
@@ -26,9 +26,9 @@ const routine = [
     },
     {
         id: 'arms',
-        name: 'Arms (Bi/Tri)',
+        name: 'Arms & Abs',
         icon: 'fa-hand-fist',
-        exercises: ['Bicep Curl', 'Hammer Curl', 'Concentration Curl (Elbow on leg)', 'Overhead Tricep Extension (Both hands)', 'Bench Dips (Legs down)', 'Placeholder: Tricep']
+        exercises: ['Bicep Curl', 'Hammer Curl', 'Concentration Curl (Elbow on leg)', 'Overhead Tricep Extension (Both hands)', 'Bench Dips (Legs down)', 'Placeholder: Tricep', 'Weighted Decline Crunches', 'Russian Twists (With Weight)', 'Bicycle Crunches']
     }
 ];
 
