@@ -6,7 +6,7 @@
     <title>Aura Gym Tracker</title>
     <!-- PWA Meta Tags -->
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#0f172a">
+    <meta name="theme-color" content="#000000">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/2964/2964098.png">
@@ -29,50 +29,48 @@
       }
     </script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Poppins:wght@600;800&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;600;800&display=swap');
         
-        :root {
-            --bg-color: #0f172a;
-            --surface-color: #1e293b;
-            --primary: #3b82f6;
-            --accent: #8b5cf6;
-        }
-
         body {
             font-family: 'Inter', sans-serif;
-            background-color: var(--bg-color);
+            background: linear-gradient(rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.95)), url('https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=1470&auto=format&fit=crop') no-repeat center center fixed;
+            background-size: cover;
             color: #f8fafc;
-            /* Disable pull-to-refresh on mobile */
             overscroll-behavior-y: none;
             -webkit-tap-highlight-color: transparent;
         }
 
-        h1, h2, h3, .font-poppins {
-            font-family: 'Poppins', sans-serif;
+        h1, h2, h3, .font-bebas {
+            font-family: 'Bebas Neue', cursive;
+            letter-spacing: 0.05em;
         }
 
-        .glass-panel {
-            background: rgba(30, 41, 59, 0.8);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        .hardcore-panel {
+            background: rgba(10, 10, 10, 0.85);
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(220, 38, 38, 0.3); /* Red border */
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.8);
         }
 
-        .gradient-text {
-            background: linear-gradient(90deg, #3b82f6, #8b5cf6);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+        .blood-text {
+            color: #dc2626;
+            text-shadow: 0 0 10px rgba(220, 38, 38, 0.5);
         }
 
-        .gradient-bg {
-            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+        .blood-bg {
+            background-color: #dc2626;
+            box-shadow: 0 0 15px rgba(220, 38, 38, 0.4);
         }
 
-        /* Large touch targets for mobile */
-        input[type="number"] {
+        input[type="number"], input[type="text"], input[type="password"] {
             font-size: 1.125rem;
-            padding: 0.75rem;
+            background: rgba(0,0,0,0.6);
+            border: 1px solid #333;
+            color: white;
+        }
+        input:focus {
+            border-color: #dc2626 !important;
+            outline: none;
         }
 
         /* Hide Number Arrows */
@@ -87,22 +85,35 @@
         .xp-bar {
             transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
         }
+        
+        /* Gritty image cards */
+        .gym-card {
+            background-size: cover;
+            background-position: center;
+            position: relative;
+        }
+        .gym-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to top, rgba(0,0,0,0.9), rgba(0,0,0,0.2));
+        }
     </style>
 </head>
 <body class="flex flex-col h-screen antialiased overflow-hidden">
 
     <!-- Top Bar -->
-    <header class="glass-panel z-50 pt-safe px-5 py-4 flex justify-between items-center sticky top-0">
+    <header class="bg-black/90 border-b border-red-900/50 z-50 pt-safe px-5 py-4 flex justify-between items-center sticky top-0 shadow-lg shadow-red-900/20">
         <div class="flex items-center gap-2">
-            <i class="fa-solid fa-bolt text-xl text-yellow-400"></i>
-            <h1 class="text-xl font-poppins tracking-wider gradient-text font-bold">AURA</h1>
+            <i class="fa-solid fa-fire text-xl text-red-600"></i>
+            <h1 class="text-3xl font-bebas blood-text mt-1">AURA</h1>
         </div>
         <div class="flex items-center gap-3">
             <div class="text-right">
-                <div class="text-xs font-bold text-gray-400 uppercase tracking-widest">Level <span id="hdr-level" class="text-white">1</span></div>
+                <div class="text-xs font-bold text-gray-500 uppercase tracking-widest">Level <span id="hdr-level" class="text-white">1</span></div>
             </div>
-            <div class="w-10 h-10 rounded-full gradient-bg flex items-center justify-center font-bold shadow-lg shadow-purple-500/30">
-                <i class="fa-solid fa-crown text-white text-sm"></i>
+            <div class="w-8 h-8 bg-red-600 flex items-center justify-center font-bold border border-red-400">
+                <i class="fa-solid fa-skull text-black text-sm"></i>
             </div>
         </div>
     </header>
@@ -114,39 +125,40 @@
         <div id="tab-dashboard" class="animate-fade-in flex flex-col gap-6">
             
             <!-- Gamification Card -->
-            <div class="glass-panel p-6 rounded-3xl relative overflow-hidden">
-                <div class="absolute -right-10 -top-10 w-32 h-32 bg-purple-500/20 rounded-full blur-2xl"></div>
-                <h2 class="text-sm font-semibold text-purple-400 uppercase tracking-wider mb-1">Aura Rank</h2>
-                <div class="flex justify-between items-end mb-3">
-                    <h1 class="text-4xl font-poppins font-bold">Lvl <span id="dash-level">1</span></h1>
-                    <span class="text-sm text-gray-400 font-semibold"><span id="dash-xp">0</span> / <span id="dash-xp-next">500</span> XP</span>
+            <div class="gym-card rounded-md border border-red-900/50 overflow-hidden" style="background-image: url('https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?q=80&w=1470&auto=format&fit=crop'); min-height: 180px;">
+                <div class="relative z-10 p-6 flex flex-col h-full justify-end">
+                    <h2 class="text-xs font-bold text-red-500 uppercase tracking-widest mb-1">Status</h2>
+                    <div class="flex justify-between items-end mb-3">
+                        <h1 class="text-5xl font-bebas text-white tracking-wide">LVL <span id="dash-level">1</span></h1>
+                        <span class="text-sm text-gray-300 font-bold"><span id="dash-xp">0</span> / <span id="dash-xp-next">500</span> XP</span>
+                    </div>
+                    <div class="h-2 w-full bg-black/80 border border-gray-800 overflow-hidden mb-1">
+                        <div id="dash-xp-bar" class="xp-bar h-full blood-bg w-0"></div>
+                    </div>
+                    <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest" id="dash-xp-msg">Train to level up</p>
                 </div>
-                <div class="h-3 w-full bg-gray-800 rounded-full overflow-hidden mb-2 shadow-inner">
-                    <div id="dash-xp-bar" class="xp-bar h-full gradient-bg w-0 rounded-full"></div>
-                </div>
-                <p class="text-xs text-gray-400 mt-2 text-center" id="dash-xp-msg">Log workouts to level up!</p>
             </div>
 
             <!-- Stats Grid -->
             <div class="grid grid-cols-2 gap-4">
-                <div class="glass-panel p-5 rounded-3xl flex flex-col items-center justify-center text-center gap-2">
-                    <div class="w-12 h-12 rounded-full bg-blue-500/20 text-blue-400 flex items-center justify-center text-xl mb-1">
+                <div class="hardcore-panel p-5 rounded-md flex flex-col items-center justify-center text-center gap-2">
+                    <div class="text-red-600 text-3xl mb-1">
                         <i class="fa-solid fa-dumbbell"></i>
                     </div>
-                    <p class="text-2xl font-bold" id="dash-workout-count">0</p>
-                    <p class="text-xs text-gray-400 font-semibold uppercase">Workouts</p>
+                    <p class="text-3xl font-bebas tracking-wide" id="dash-workout-count">0</p>
+                    <p class="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Workouts</p>
                 </div>
-                <div class="glass-panel p-5 rounded-3xl flex flex-col items-center justify-center text-center gap-2">
-                    <div class="w-12 h-12 rounded-full bg-green-500/20 text-green-400 flex items-center justify-center text-xl mb-1">
+                <div class="hardcore-panel p-5 rounded-md flex flex-col items-center justify-center text-center gap-2">
+                    <div class="text-red-600 text-3xl mb-1">
                         <i class="fa-solid fa-weight-hanging"></i>
                     </div>
-                    <p class="text-2xl font-bold" id="dash-total-volume">0</p>
-                    <p class="text-xs text-gray-400 font-semibold uppercase">Total Vol (kg)</p>
+                    <p class="text-3xl font-bebas tracking-wide" id="dash-total-volume">0</p>
+                    <p class="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Volume (KG)</p>
                 </div>
             </div>
 
-            <button onclick="switchTab('workouts')" class="w-full gradient-bg p-5 rounded-3xl font-poppins font-bold text-lg shadow-lg shadow-blue-500/20 active:scale-95 transition-transform flex justify-center items-center gap-3">
-                Start Next Workout <i class="fa-solid fa-play"></i>
+            <button onclick="switchTab('workouts')" class="w-full blood-bg p-5 rounded-md font-bebas text-2xl tracking-wider text-black hover:bg-red-500 active:scale-95 transition-all flex justify-center items-center gap-3 mt-4">
+                START WORKOUT <i class="fa-solid fa-play text-lg"></i>
             </button>
         </div>
 
@@ -157,18 +169,18 @@
                 <!-- Populated by JS -->
             </div>
 
-            <div class="mt-2 mb-6 flex justify-between items-center">
-                <h2 class="text-2xl font-poppins font-bold" id="current-workout-title">Select Day</h2>
-                <div class="text-xs bg-gray-800 text-gray-400 px-3 py-1 rounded-full font-bold">3 Sets Fixed</div>
+            <div class="mt-4 mb-6 flex justify-between items-end border-b border-red-900/50 pb-2">
+                <h2 class="text-3xl font-bebas tracking-wide text-white uppercase" id="current-workout-title">Select Day</h2>
+                <div class="text-[10px] bg-red-900/30 text-red-500 border border-red-900/50 px-2 py-1 uppercase font-bold tracking-widest">3 Sets Fixed</div>
             </div>
             
-            <div id="exercise-list" class="space-y-5">
+            <div id="exercise-list" class="space-y-6">
                 <!-- Populated by JS -->
             </div>
 
             <div class="mt-8 mb-4">
-                <button id="save-workout-btn" class="w-full gradient-bg p-5 rounded-3xl font-poppins font-bold text-lg shadow-lg opacity-50 transition-all">
-                    Finish & Gain XP <i class="fa-solid fa-bolt ml-2 text-yellow-300"></i>
+                <button id="save-workout-btn" class="w-full blood-bg p-5 rounded-md font-bebas text-2xl tracking-wider text-black opacity-50 transition-all">
+                    LOG WORKOUT & GAIN XP
                 </button>
             </div>
         </div>
@@ -177,31 +189,31 @@
         <div id="tab-ai-trainer" class="animate-fade-in hidden flex flex-col h-[calc(100vh-140px)]">
             
             <!-- API Key Settings -->
-            <div id="api-settings" class="glass-panel p-5 rounded-2xl mb-4 hidden flex-shrink-0">
-                <h3 class="font-bold mb-2 text-blue-400 text-sm uppercase tracking-wide"><i class="fa-solid fa-key mr-2"></i> Setup API Key</h3>
+            <div id="api-settings" class="hardcore-panel p-5 mb-4 hidden flex-shrink-0 border-l-4 border-l-red-600">
+                <h3 class="font-bebas text-xl mb-2 text-red-500 tracking-wide"><i class="fa-solid fa-key mr-2"></i> API Key</h3>
                 <div class="flex gap-2">
-                    <input type="password" id="api-key-input" placeholder="AIzaSy..." class="flex-1 bg-gray-900 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    <button onclick="saveApiKey()" class="bg-blue-600 px-4 py-2 rounded-xl font-bold">Save</button>
+                    <input type="password" id="api-key-input" placeholder="AIzaSy..." class="flex-1 px-4 py-3 text-sm">
+                    <button onclick="saveApiKey()" class="bg-red-600 text-black font-bold px-4 py-2 uppercase text-sm tracking-wider hover:bg-red-500">Save</button>
                 </div>
             </div>
 
             <!-- Chat Area -->
-            <div class="glass-panel rounded-3xl flex-1 flex flex-col overflow-hidden shadow-xl shadow-purple-900/10 relative">
-                <div class="absolute top-4 right-4 z-10">
-                    <button onclick="toggleApiSettings()" class="w-8 h-8 rounded-full bg-gray-800/80 flex items-center justify-center text-gray-400"><i class="fa-solid fa-gear text-xs"></i></button>
+            <div class="hardcore-panel flex-1 flex flex-col overflow-hidden relative">
+                <div class="absolute top-3 right-3 z-10">
+                    <button onclick="toggleApiSettings()" class="text-gray-500 hover:text-red-500"><i class="fa-solid fa-gear"></i></button>
                 </div>
                 
-                <div id="chat-messages" class="flex-1 overflow-y-auto p-4 space-y-4 pt-12">
-                    <div class="bg-purple-900/30 border border-purple-500/30 rounded-2xl rounded-tl-none p-4 max-w-[85%] text-sm">
-                        <div class="font-bold text-purple-300 mb-1"><i class="fa-solid fa-robot"></i> Aura AI</div>
-                        <div class="text-gray-100">Hey boss! Ready to push some heavy circles? Log your sets in the routine tab, and ask me anything about your form, progress, or diet here!</div>
+                <div id="chat-messages" class="flex-1 overflow-y-auto p-4 space-y-4 pt-10">
+                    <div class="border border-red-900/50 bg-black p-4 max-w-[85%] text-sm rounded-br-xl">
+                        <div class="font-bebas text-red-600 text-lg mb-1 tracking-wide"><i class="fa-solid fa-skull"></i> Trainer</div>
+                        <div class="text-gray-300">Time to bleed. Log your sets, lift heavy, and ask me if you need form checks or diet reality checks. What's the excuse today?</div>
                     </div>
                 </div>
                 
-                <div class="p-3 bg-gray-800/80 backdrop-blur-md">
+                <div class="p-3 bg-black border-t border-red-900/50">
                     <form id="chat-form" class="flex gap-2">
-                        <input type="text" id="chat-input" placeholder="Ask AI Trainer..." class="flex-1 bg-gray-900 rounded-full px-5 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 transition-shadow">
-                        <button type="submit" class="w-12 h-12 rounded-full gradient-bg flex items-center justify-center shadow-lg active:scale-95 transition-transform flex-shrink-0">
+                        <input type="text" id="chat-input" placeholder="Ask AI..." class="flex-1 px-4 py-3 text-sm">
+                        <button type="submit" class="w-12 h-12 blood-bg flex items-center justify-center text-black active:scale-95 transition-transform">
                             <i class="fa-solid fa-paper-plane"></i>
                         </button>
                     </form>
@@ -211,20 +223,20 @@
 
         <!-- Progress Tab -->
         <div id="tab-progress" class="animate-fade-in hidden">
-            <h2 class="text-2xl font-poppins font-bold mb-6">Progress Log</h2>
+            <h2 class="text-4xl font-bebas blood-text tracking-wide mb-6">PROGRESS</h2>
 
-            <div class="glass-panel p-5 rounded-3xl mb-6">
-                <h3 class="text-sm font-bold text-gray-400 uppercase mb-4">Volume Over Time</h3>
+            <div class="hardcore-panel p-5 mb-6">
+                <h3 class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-4">Volume Over Time</h3>
                 <div class="h-48 w-full">
                     <canvas id="volumeChart"></canvas>
                 </div>
             </div>
             
-            <div class="mb-4 flex justify-between items-center">
-                <h3 class="text-lg font-bold">Past Workouts</h3>
-                <button onclick="clearData()" class="text-xs text-red-400 font-bold bg-red-400/10 px-3 py-1 rounded-full"><i class="fa-solid fa-trash"></i> Reset</button>
+            <div class="mb-4 flex justify-between items-end border-b border-red-900/50 pb-2">
+                <h3 class="text-2xl font-bebas tracking-wide text-white">HISTORY</h3>
+                <button onclick="clearData()" class="text-[10px] text-red-500 font-bold uppercase tracking-widest"><i class="fa-solid fa-trash"></i> Wipe Data</button>
             </div>
-            <div id="recent-logs" class="space-y-4">
+            <div id="recent-logs" class="space-y-3">
                 <!-- Populated by JS -->
             </div>
         </div>
@@ -232,18 +244,18 @@
     </main>
 
     <!-- Bottom Nav -->
-    <nav class="fixed bottom-0 w-full glass-panel pb-safe pt-2 px-6 flex justify-between z-50 rounded-t-3xl border-t border-gray-700/50">
-        <button onclick="switchTab('dashboard')" class="flex flex-col items-center p-2 text-blue-500 w-16 tab-btn" data-tab="dashboard">
-            <i class="fa-solid fa-chart-pie text-xl mb-1"></i><span class="text-[10px] font-bold">Dash</span>
+    <nav class="fixed bottom-0 w-full bg-black/95 border-t border-red-900/50 pb-safe pt-2 px-6 flex justify-between z-50">
+        <button onclick="switchTab('dashboard')" class="flex flex-col items-center p-2 text-red-600 w-16 tab-btn" data-tab="dashboard">
+            <i class="fa-solid fa-house text-xl mb-1"></i><span class="text-[9px] font-bold uppercase tracking-widest mt-1">Dash</span>
         </button>
-        <button onclick="switchTab('workouts')" class="flex flex-col items-center p-2 text-gray-500 w-16 tab-btn" data-tab="workouts">
-            <i class="fa-solid fa-dumbbell text-xl mb-1"></i><span class="text-[10px] font-bold">Train</span>
+        <button onclick="switchTab('workouts')" class="flex flex-col items-center p-2 text-gray-600 w-16 tab-btn" data-tab="workouts">
+            <i class="fa-solid fa-dumbbell text-xl mb-1"></i><span class="text-[9px] font-bold uppercase tracking-widest mt-1">Train</span>
         </button>
-        <button onclick="switchTab('ai-trainer')" class="flex flex-col items-center p-2 text-gray-500 w-16 tab-btn" data-tab="ai-trainer">
-            <i class="fa-solid fa-robot text-xl mb-1"></i><span class="text-[10px] font-bold">AI</span>
+        <button onclick="switchTab('ai-trainer')" class="flex flex-col items-center p-2 text-gray-600 w-16 tab-btn" data-tab="ai-trainer">
+            <i class="fa-solid fa-skull text-xl mb-1"></i><span class="text-[9px] font-bold uppercase tracking-widest mt-1">Coach</span>
         </button>
-        <button onclick="switchTab('progress')" class="flex flex-col items-center p-2 text-gray-500 w-16 tab-btn" data-tab="progress">
-            <i class="fa-solid fa-chart-simple text-xl mb-1"></i><span class="text-[10px] font-bold">Stats</span>
+        <button onclick="switchTab('progress')" class="flex flex-col items-center p-2 text-gray-600 w-16 tab-btn" data-tab="progress">
+            <i class="fa-solid fa-chart-line text-xl mb-1"></i><span class="text-[9px] font-bold uppercase tracking-widest mt-1">Stats</span>
         </button>
     </nav>
 

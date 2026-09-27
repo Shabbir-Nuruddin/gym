@@ -38,8 +38,8 @@ let apiKey = localStorage.getItem('auraGeminiKey') || '';
 let currentDayId = 'chest';
 let volumeChartInstance = null;
 let chatHistory = [
-    { role: 'user', parts: [{ text: "I am a beginner starting a 5-day workout split (Chest, Legs, Shoulders, Back, Arms). Be my motivating, expert AI personal trainer." }] },
-    { role: 'model', parts: [{ text: "I am ready! I'll be your expert personal trainer. Let's build some muscle and stay consistent. What do you need help with today?" }] }
+    { role: 'user', parts: [{ text: "I am a beginner starting a 5-day workout split. Be my ruthless, hardcore, motivating AI personal trainer. Use short, punchy, aggressive motivation." }] },
+    { role: 'model', parts: [{ text: "No excuses today. You log the sets, I track the gains. Let's get to work. What do you need?" }] }
 ];
 
 // Initialization
@@ -60,15 +60,15 @@ function switchTab(tabId) {
     
     // Reset all nav buttons
     document.querySelectorAll('.tab-btn').forEach(btn => {
-        btn.classList.remove('text-blue-500');
-        btn.classList.add('text-gray-500');
+        btn.classList.remove('text-red-600');
+        btn.classList.add('text-gray-600');
     });
     
     // Activate target nav button
     const activeBtn = document.querySelector(`.tab-btn[data-tab="${tabId}"]`);
     if(activeBtn) {
-        activeBtn.classList.remove('text-gray-500');
-        activeBtn.classList.add('text-blue-500');
+        activeBtn.classList.remove('text-gray-600');
+        activeBtn.classList.add('text-red-600');
     }
 
     if(tabId === 'progress') {
@@ -104,8 +104,8 @@ function renderRoutineTabs() {
         btn.onclick = () => selectDay(day.id);
         const isActive = day.id === currentDayId;
         
-        btn.className = `snap-center flex-shrink-0 flex flex-col items-center justify-center w-20 h-20 rounded-3xl transition-all ${isActive ? 'gradient-bg shadow-lg shadow-blue-500/30 text-white scale-105' : 'bg-gray-800 text-gray-400 opacity-70'}`;
-        btn.innerHTML = `<i class="fa-solid ${day.icon} text-2xl mb-1"></i><span class="text-[10px] font-bold uppercase tracking-wider">${day.name}</span>`;
+        btn.className = `snap-center flex-shrink-0 flex flex-col items-center justify-center w-20 h-20 border transition-all ${isActive ? 'blood-bg border-red-500 text-black shadow-lg shadow-red-900/50 scale-105' : 'bg-black/60 border-gray-800 text-gray-500 hover:border-red-900/50'}`;
+        btn.innerHTML = `<i class="fa-solid ${day.icon} text-2xl mb-1"></i><span class="text-[10px] font-bold uppercase tracking-widest">${day.name}</span>`;
         container.appendChild(btn);
     });
 }
@@ -128,29 +128,29 @@ function selectDay(dayId) {
         window.currentWorkoutSets[index] = [ { reps: 12, weight: '' }, { reps: 10, weight: '' }, { reps: 8, weight: '' } ];
         
         const div = document.createElement('div');
-        div.className = 'glass-panel rounded-3xl p-5 mb-4 shadow-md';
+        div.className = 'hardcore-panel p-5 mb-4 border-l-4 border-l-red-600';
         
         let setsHtml = '';
         window.currentWorkoutSets[index].forEach((set, sIndex) => {
             setsHtml += `
                 <div class="flex items-center gap-3 mt-3">
-                    <div class="w-8 h-8 rounded-full bg-blue-500/20 text-blue-400 font-bold flex items-center justify-center text-xs flex-shrink-0">${sIndex + 1}</div>
+                    <div class="w-8 h-8 bg-red-900/30 text-red-500 border border-red-900/50 font-bebas text-lg flex items-center justify-center flex-shrink-0">${sIndex + 1}</div>
                     
                     <div class="flex-1 relative">
-                        <input type="number" inputmode="decimal" placeholder="Reps" value="${set.reps}" oninput="updateSet(${index}, ${sIndex}, 'reps', this.value)" class="w-full bg-gray-900 border-none rounded-2xl py-3 pl-4 pr-2 text-lg font-bold text-white focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-600 transition-shadow">
-                        <span class="absolute right-3 top-3 text-xs text-gray-500 font-bold uppercase">Reps</span>
+                        <input type="number" inputmode="decimal" placeholder="REPS" value="${set.reps}" oninput="updateSet(${index}, ${sIndex}, 'reps', this.value)" class="w-full py-3 pl-4 pr-2 text-lg font-bebas tracking-wide focus:border-red-600 transition-colors">
+                        <span class="absolute right-3 top-3.5 text-[10px] text-gray-500 font-bold uppercase">Reps</span>
                     </div>
                     
                     <div class="flex-1 relative">
-                        <input type="number" inputmode="decimal" placeholder="Weight" value="${set.weight}" oninput="updateSet(${index}, ${sIndex}, 'weight', this.value)" class="ex-weight w-full bg-gray-900 border-none rounded-2xl py-3 pl-4 pr-2 text-lg font-bold text-white focus:outline-none focus:ring-2 focus:ring-purple-500 placeholder-gray-600 transition-shadow">
-                        <span class="absolute right-3 top-3 text-xs text-gray-500 font-bold uppercase">KG</span>
+                        <input type="number" inputmode="decimal" placeholder="KG" value="${set.weight}" oninput="updateSet(${index}, ${sIndex}, 'weight', this.value)" class="ex-weight w-full py-3 pl-4 pr-2 text-lg font-bebas tracking-wide focus:border-red-600 transition-colors">
+                        <span class="absolute right-3 top-3.5 text-[10px] text-gray-500 font-bold uppercase">KG</span>
                     </div>
                 </div>
             `;
         });
 
         div.innerHTML = `
-            <h3 class="font-poppins font-bold text-lg text-white mb-2 ml-1"><span class="text-blue-500 mr-1">${index + 1}.</span> ${ex}</h3>
+            <h3 class="font-bebas text-2xl text-white mb-2 tracking-wide uppercase"><span class="text-red-600 mr-2">${index + 1}.</span>${ex}</h3>
             <div class="flex flex-col gap-1">
                 ${setsHtml}
             </div>
@@ -178,7 +178,6 @@ function checkWorkoutValid() {
     const btn = document.getElementById('save-workout-btn');
     if(hasValue) {
         btn.classList.remove('opacity-50');
-        // Prevent multiple bindings by assigning to property
         btn.onclick = saveWorkout;
     } else {
         btn.classList.add('opacity-50');
@@ -228,8 +227,6 @@ function saveWorkout() {
     localStorage.setItem('auraHistory', JSON.stringify(workoutHistory));
     
     updateDashboard();
-    
-    // Clear inputs by re-selecting the day
     selectDay(currentDayId);
     
     switchTab('dashboard');
@@ -240,22 +237,22 @@ function saveWorkout() {
 function initChart() {
     const ctx = document.getElementById('volumeChart').getContext('2d');
     volumeChartInstance = new Chart(ctx, {
-        type: 'bar', // changed to bar for mobile clarity
+        type: 'bar',
         data: {
             labels: [],
             datasets: [{
                 label: 'Volume (kg)',
                 data: [],
-                backgroundColor: 'rgba(59, 130, 246, 0.8)',
-                borderRadius: 4,
+                backgroundColor: 'rgba(220, 38, 38, 0.9)', // Red bars
+                borderRadius: 2,
             }]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
             scales: {
-                y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8', font:{size: 10} } },
-                x: { grid: { display: false }, ticks: { color: '#94a3b8', font:{size: 10} } }
+                y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#6b7280', font:{family:'Bebas Neue', size: 14} } },
+                x: { grid: { display: false }, ticks: { color: '#6b7280', font:{family:'Bebas Neue', size: 14} } }
             },
             plugins: {
                 legend: { display: false }
@@ -266,11 +263,8 @@ function initChart() {
 
 function updateProgressChart() {
     if(!volumeChartInstance) return;
-    
-    // Group by date (simplistic)
     const labels = workoutHistory.map(h => new Date(h.date).toLocaleDateString(undefined, {month:'short', day:'numeric'}));
     const data = workoutHistory.map(h => h.totalVolume);
-    
     volumeChartInstance.data.labels = labels;
     volumeChartInstance.data.datasets[0].data = data;
     volumeChartInstance.update();
@@ -279,7 +273,7 @@ function updateProgressChart() {
 function renderRecentLogs() {
     const container = document.getElementById('recent-logs');
     if(workoutHistory.length === 0) {
-        container.innerHTML = '<p class="text-gray-500 italic text-center py-8">No workouts logged yet. Go crush a session!</p>';
+        container.innerHTML = '<p class="text-gray-500 font-bebas text-center py-8 tracking-wider">NO HISTORY. START LIFTING.</p>';
         return;
     }
     
@@ -288,14 +282,14 @@ function renderRecentLogs() {
     
     reversed.forEach(log => {
         const div = document.createElement('div');
-        div.className = 'glass-panel p-4 rounded-2xl flex justify-between items-center';
+        div.className = 'hardcore-panel p-4 flex justify-between items-center border-l-2 border-l-red-600';
         div.innerHTML = `
             <div>
-                <p class="font-poppins font-bold text-white">${log.dayName}</p>
-                <p class="text-xs text-gray-400 font-bold">${new Date(log.date).toLocaleDateString()}</p>
+                <p class="font-bebas text-xl text-white tracking-wider">${log.dayName}</p>
+                <p class="text-[10px] text-gray-500 font-bold uppercase">${new Date(log.date).toLocaleDateString()}</p>
             </div>
             <div class="text-right">
-                <p class="font-bold text-blue-400 text-lg">${log.totalVolume.toLocaleString()} <span class="text-xs text-gray-500">KG</span></p>
+                <p class="font-bebas text-red-500 text-2xl">${log.totalVolume.toLocaleString()} <span class="text-[12px] text-gray-500">KG</span></p>
             </div>
         `;
         container.appendChild(div);
@@ -323,7 +317,7 @@ document.getElementById('chat-form').addEventListener('submit', async (e) => {
     if(!text) return;
 
     if(!apiKey) {
-        alert("Please configure your Gemini API Key in the settings (gear icon) first.");
+        alert("Enter API Key in settings first.");
         toggleApiSettings();
         return;
     }
@@ -331,15 +325,13 @@ document.getElementById('chat-form').addEventListener('submit', async (e) => {
     addChatMessage('user', text);
     input.value = '';
 
-    // Append to chat history
     chatHistory.push({ role: 'user', parts: [{ text: text }] });
 
-    // Show loading
     const loadingId = 'loading-' + Date.now();
-    addChatMessage('ai', '<i class="fa-solid fa-spinner fa-spin"></i> Analyzing...', loadingId);
+    addChatMessage('ai', '<i class="fa-solid fa-spinner fa-spin"></i> Processing...', loadingId);
 
     try {
-        let statsContext = `Context: The user has logged ${workoutHistory.length} workouts. Total volume moved: ${workoutHistory.reduce((a,b)=>a+b.totalVolume,0)}kg. Their routine is 5 days (Chest, Legs, Shoulders, Back, Arms). Answer concisely and motivating as a personal trainer.`;
+        let statsContext = `Context: The user has logged ${workoutHistory.length} workouts. Total volume: ${workoutHistory.reduce((a,b)=>a+b.totalVolume,0)}kg. Routine: 5 days. Keep tone hardcore, aggressive, and short.`;
         
         let requestHistory = [...chatHistory];
         requestHistory[requestHistory.length-1].parts[0].text = `${statsContext}\n\nUser: ${text}`;
@@ -361,7 +353,7 @@ document.getElementById('chat-form').addEventListener('submit', async (e) => {
         chatHistory.push({ role: 'model', parts: [{ text: reply }] });
         document.getElementById(loadingId).innerHTML = marked.parse(reply);
     } catch(err) {
-        document.getElementById(loadingId).innerHTML = `<span class="text-red-400">Error connecting to AI.</span>`;
+        document.getElementById(loadingId).innerHTML = `<span class="text-red-500 font-bold uppercase">Connection Failure.</span>`;
         chatHistory.pop();
     }
     
@@ -371,11 +363,11 @@ document.getElementById('chat-form').addEventListener('submit', async (e) => {
 function addChatMessage(role, htmlContent, id = null) {
     const chatMsgs = document.getElementById('chat-messages');
     const div = document.createElement('div');
-    div.className = `p-4 max-w-[85%] text-sm rounded-2xl ${role === 'user' ? 'bg-blue-600 ml-auto rounded-tr-none text-white' : 'bg-purple-900/30 border border-purple-500/30 rounded-tl-none text-gray-200'}`;
+    div.className = `p-4 max-w-[85%] text-sm ${role === 'user' ? 'bg-red-700 ml-auto rounded-tl-xl rounded-bl-xl rounded-tr-xl text-white' : 'border border-red-900/50 bg-black rounded-tr-xl rounded-br-xl rounded-bl-xl text-gray-300'}`;
     if(id) div.id = id;
     
     if(role === 'ai') {
-        div.innerHTML = `<div class="font-bold text-purple-300 mb-1"><i class="fa-solid fa-robot"></i> Aura AI</div><div class="prose prose-invert prose-sm">${htmlContent}</div>`;
+        div.innerHTML = `<div class="font-bebas text-red-600 text-lg mb-1 tracking-wide"><i class="fa-solid fa-skull"></i> Trainer</div><div class="prose prose-invert prose-sm">${htmlContent}</div>`;
     } else {
         div.innerHTML = htmlContent;
     }
@@ -396,7 +388,7 @@ function initUI() {
 }
 
 function clearData() {
-    if(confirm('Delete all data? This resets your level and history.')) {
+    if(confirm('WIPE ALL DATA? You will lose all XP and History.')) {
         localStorage.removeItem('auraHistory');
         workoutHistory = [];
         updateDashboard();
