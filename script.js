@@ -460,19 +460,96 @@ function playSuccess() {
     osc.stop(audioCtx.currentTime + 0.5);
 }
 
-function toggleMusic() {
-    const audio = document.getElementById('bg-music');
-    const icon = document.getElementById('music-icon');
+// ==========================================
+// MUSIC PLAYER & SOUND EFFECTS
+// ==========================================
+const playlist = [
+    { title: "Synthwave Radio", artist: "FreeCodeCamp", src: "https://coderadio-admin.freecodecamp.org/radio/8000/radio.mp3" },
+    { title: "Hardcore Workout 1", artist: "Local MP3", src: "1.mp3" },
+    { title: "Hardcore Workout 2", artist: "Local MP3", src: "2.mp3" },
+    { title: "Hardcore Workout 3", artist: "Local MP3", src: "3.mp3" }
+];
+let currentTrackIndex = 0;
+
+const audioPlayer = document.getElementById('bg-music');
+
+function loadTrack(index) {
+    const track = playlist[index];
+    audioPlayer.src = track.src;
+    document.getElementById('track-title').innerText = track.title;
+    document.getElementById('track-artist').innerText = track.artist;
     
-    if (audio.paused) {
-        audio.play();
-        icon.className = 'fa-solid fa-volume-high text-red-500';
-    } else {
-        audio.pause();
-        icon.className = 'fa-solid fa-volume-xmark text-gray-500';
+    // Update Media Session API for Lock Screen Controls
+    if ('mediaSession' in navigator) {
+        navigator.mediaSession.metadata = new MediaMetadata({
+            title: track.title,
+            artist: track.artist,
+            album: 'AURA GYM',
+            artwork: [
+                { src: 'https://cdn-icons-png.flaticon.com/512/2964/2964098.png', sizes: '512x512', type: 'image/png' }
+            ]
+        });
     }
-    playClick();
 }
+
+function toggleMusic() {
+    const btn = document.getElementById('play-pause-btn');
+    
+    // If empty src, load first track
+    if (!audioPlayer.src || audioPlayer.src === window.location.href) {
+        loadTrack(currentTrackIndex);
+    }
+    
+    if (audioPlayer.paused) {
+        audioPlayer.play().catch(e => console.log('Playback prevented', e));
+        btn.innerHTML = '<i class="fa-solid fa-pause"></i>';
+        btn.classList.add('bg-white');
+        btn.classList.remove('blood-bg');
+    } else {
+        audioPlayer.pause();
+        btn.innerHTML = '<i class="fa-solid fa-play ml-1"></i>';
+        btn.classList.remove('bg-white');
+        btn.classList.add('blood-bg');
+    }
+    if(typeof playClick === 'function') playClick();
+}
+
+function nextTrack() {
+    currentTrackIndex = (currentTrackIndex + 1) % playlist.length;
+    loadTrack(currentTrackIndex);
+    audioPlayer.play().catch(e => console.log(e));
+    const btn = document.getElementById('play-pause-btn');
+    btn.innerHTML = '<i class="fa-solid fa-pause"></i>';
+    if(typeof playClick === 'function') playClick();
+}
+
+function prevTrack() {
+    currentTrackIndex = (currentTrackIndex - 1 + playlist.length) % playlist.length;
+    loadTrack(currentTrackIndex);
+    audioPlayer.play().catch(e => console.log(e));
+    const btn = document.getElementById('play-pause-btn');
+    btn.innerHTML = '<i class="fa-solid fa-pause"></i>';
+    if(typeof playClick === 'function') playClick();
+}
+
+// Auto-play next track when ended
+audioPlayer.addEventListener('ended', nextTrack);
+
+// Media Session Handlers
+if ('mediaSession' in navigator) {
+    navigator.mediaSession.setActionHandler('play', toggleMusic);
+    navigator.mediaSession.setActionHandler('pause', toggleMusic);
+    navigator.mediaSession.setActionHandler('previoustrack', prevTrack);
+    navigator.mediaSession.setActionHandler('nexttrack', nextTrack);
+}
+
+// Load initial text
+document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('track-title').innerText = playlist[0].title;
+    document.getElementById('track-artist').innerText = playlist[0].artist;
+});
+
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
 
 // ==========================================

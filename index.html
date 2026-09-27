@@ -109,9 +109,6 @@
             <h1 class="text-3xl font-bebas blood-text mt-1">AURA</h1>
         </div>
         <div class="flex items-center gap-4">
-            <button id="music-btn" onclick="toggleMusic()" class="text-gray-500 hover:text-red-500 transition-colors text-xl">
-                <i class="fa-solid fa-volume-xmark" id="music-icon"></i>
-            </button>
             <div class="text-right">
                 <div class="text-xs font-bold text-gray-500 uppercase tracking-widest">Level <span id="hdr-level" class="text-white">1</span></div>
             </div>
@@ -122,10 +119,27 @@
     </header>
 
     <!-- Hidden Audio Player -->
-    <!-- Using an upbeat Synthwave creative commons radio stream as default -->
-    <audio id="bg-music" loop>
-        <source src="https://coderadio-admin.freecodecamp.org/radio/8000/radio.mp3" type="audio/mpeg">
-    </audio>
+    <audio id="bg-music"></audio>
+
+    <!-- Mini Music Player (Fixed above bottom nav) -->
+    <div id="mini-player" class="fixed bottom-[72px] w-full px-4 z-40 pb-safe-offset transition-all duration-300">
+        <div class="bg-black/95 border border-red-900/50 rounded-xl p-3 flex items-center justify-between shadow-[0_0_20px_rgba(220,38,38,0.15)]">
+            <div class="flex items-center gap-3 overflow-hidden flex-1 mr-2">
+                <div class="w-10 h-10 bg-red-900/30 rounded flex items-center justify-center text-red-500 flex-shrink-0">
+                    <i class="fa-solid fa-music"></i>
+                </div>
+                <div class="flex flex-col truncate w-full">
+                    <span id="track-title" class="font-bebas text-white tracking-wider text-lg truncate leading-tight">AURA RADIO</span>
+                    <span id="track-artist" class="text-[10px] font-bold text-gray-500 uppercase tracking-widest truncate">READY TO LIFT</span>
+                </div>
+            </div>
+            <div class="flex items-center gap-5 px-2">
+                <button onclick="prevTrack()" class="text-gray-400 hover:text-white active:scale-95 text-lg"><i class="fa-solid fa-backward-step"></i></button>
+                <button onclick="toggleMusic()" id="play-pause-btn" class="w-10 h-10 rounded-full blood-bg flex items-center justify-center text-black active:scale-95 text-lg"><i class="fa-solid fa-play ml-1"></i></button>
+                <button onclick="nextTrack()" class="text-gray-400 hover:text-white active:scale-95 text-lg"><i class="fa-solid fa-forward-step"></i></button>
+            </div>
+        </div>
+    </div>
 
     <!-- Main Content -->
     <main class="flex-1 overflow-y-auto pb-safe px-4 py-6 w-full max-w-md mx-auto no-scrollbar">
