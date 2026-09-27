@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aura Gym Tracker & AI Trainer</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Marked.js for Markdown -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Poppins:wght@400;600;800&display=swap');
+        
+        :root {
+            --bg-color: #0f172a;
+            --surface-color: #1e293b;
+            --primary: #3b82f6; /* Blue */
+            --accent: #8b5cf6; /* Purple */
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            overflow-x: hidden;
+        }
+
+        h1, h2, h3, h4 {
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .glass-panel {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .gradient-text {
+            background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .gradient-bg {
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+        }
+
+        .nav-item.active {
+            background: rgba(59, 130, 246, 0.2);
+            border-left: 4px solid var(--primary);
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: var(--bg-color);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--surface-color);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--primary);
+        }
+
+        .chat-message.ai {
+            background: rgba(139, 92, 246, 0.1);
+            border: 1px solid rgba(139, 92, 246, 0.2);
+            border-radius: 12px 12px 12px 0;
+        }
+        .chat-message.user {
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            border-radius: 12px 12px 0 12px;
+            text-align: right;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in {
+            animation: fadeIn 0.4s ease-out forwards;
+        }
+    </style>
+</head>
+<body class="flex h-screen antialiased">
+
+    <!-- Sidebar -->
+    <aside class="w-64 glass-panel flex flex-col hidden md:flex z-10">
+        <div class="p-6 flex items-center gap-3">
+            <i class="fa-solid fa-dumbbell text-3xl text-blue-500"></i>
+            <h1 class="text-2xl font-bold tracking-wider gradient-text">AURA</h1>
+        </div>
+        
+        <nav class="flex-1 mt-6">
+            <a href="#" onclick="switchTab('dashboard')" id="nav-dashboard" class="nav-item active flex items-center gap-4 px-6 py-4 text-gray-300 hover:text-white transition-colors">
+                <i class="fa-solid fa-chart-pie w-5"></i> Dashboard
+            </a>
+            <a href="#" onclick="switchTab('workouts')" id="nav-workouts" class="nav-item flex items-center gap-4 px-6 py-4 text-gray-300 hover:text-white transition-colors">
+                <i class="fa-solid fa-list-check w-5"></i> My Routine
+            </a>
+            <a href="#" onclick="switchTab('ai-trainer')" id="nav-ai-trainer" class="nav-item flex items-center gap-4 px-6 py-4 text-gray-300 hover:text-white transition-colors">
+                <i class="fa-solid fa-robot w-5"></i> AI Trainer
+            </a>
+            <a href="#" onclick="switchTab('progress')" id="nav-progress" class="nav-item flex items-center gap-4 px-6 py-4 text-gray-300 hover:text-white transition-colors">
+                <i class="fa-solid fa-arrow-trend-up w-5"></i> Progress
+            </a>
+        </nav>
+
+        <div class="p-6">
+            <button onclick="clearData()" class="w-full py-2 px-4 rounded-lg bg-red-900/30 text-red-400 hover:bg-red-900/50 transition-colors text-sm border border-red-900/50">
+                <i class="fa-solid fa-trash mr-2"></i> Reset Data
+            </button>
+        </div>
+    </aside>
+
+    <!-- Mobile Nav (Bottom) -->
+    <nav class="md:hidden fixed bottom-0 w-full glass-panel flex justify-around p-3 z-50">
+        <a href="#" onclick="switchTab('dashboard')" class="text-blue-500 flex flex-col items-center"><i class="fa-solid fa-chart-pie text-xl"></i><span class="text-[10px] mt-1">Dash</span></a>
+        <a href="#" onclick="switchTab('workouts')" class="text-gray-400 flex flex-col items-center"><i class="fa-solid fa-list-check text-xl"></i><span class="text-[10px] mt-1">Workout</span></a>
+        <a href="#" onclick="switchTab('ai-trainer')" class="text-gray-400 flex flex-col items-center"><i class="fa-solid fa-robot text-xl"></i><span class="text-[10px] mt-1">AI</span></a>
+        <a href="#" onclick="switchTab('progress')" class="text-gray-400 flex flex-col items-center"><i class="fa-solid fa-arrow-trend-up text-xl"></i><span class="text-[10px] mt-1">Progress</span></a>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="flex-1 flex flex-col h-screen overflow-y-auto relative pb-20 md:pb-0">
+        
+        <!-- Dashboard Tab -->
+        <div id="tab-dashboard" class="p-6 md:p-10 animate-fade-in flex-1">
+            <header class="mb-10">
+                <h2 class="text-sm font-semibold text-blue-500 tracking-widest uppercase mb-1">Welcome Back</h2>
+                <h1 class="text-4xl font-bold">Ready to <span class="gradient-text">level up?</span></h1>
+            </header>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+                <div class="glass-panel p-6 rounded-2xl flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-500 text-xl">
+                        <i class="fa-solid fa-fire"></i>
+                    </div>
+                    <div>
+                        <p class="text-gray-400 text-sm">Workouts Logged</p>
+                        <p class="text-2xl font-bold" id="dash-workout-count">0</p>
+                    </div>
+                </div>
+                <div class="glass-panel p-6 rounded-2xl flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-full bg-purple-500/20 flex items-center justify-center text-purple-500 text-xl">
+                        <i class="fa-solid fa-weight-hanging"></i>
+                    </div>
+                    <div>
+                        <p class="text-gray-400 text-sm">Total Volume</p>
+                        <p class="text-2xl font-bold" id="dash-total-volume">0 kg</p>
+                    </div>
+                </div>
+                <div class="glass-panel p-6 rounded-2xl flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-full bg-green-500/20 flex items-center justify-center text-green-500 text-xl">
+                        <i class="fa-solid fa-calendar-check"></i>
+                    </div>
+                    <div>
+                        <p class="text-gray-400 text-sm">Next Up</p>
+                        <p class="text-lg font-bold truncate" id="dash-next-workout">Chest Day</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-panel rounded-2xl p-8 relative overflow-hidden">
+                <div class="absolute top-0 right-0 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none"></div>
+                <h3 class="text-2xl font-bold mb-4 z-10 relative">Today's Motivation</h3>
+                <p class="text-gray-300 italic text-lg z-10 relative border-l-4 border-blue-500 pl-4 py-1">"The only bad workout is the one that didn't happen. As a beginner, consistency is your greatest weapon."</p>
+                <button onclick="switchTab('workouts')" class="mt-6 gradient-bg px-6 py-3 rounded-lg font-semibold shadow-lg shadow-blue-500/25 hover:scale-105 transition-transform z-10 relative">
+                    Start Workout <i class="fa-solid fa-arrow-right ml-2"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Workouts Tab -->
+        <div id="tab-workouts" class="p-6 md:p-10 animate-fade-in hidden flex-1">
+            <header class="mb-8">
+                <h1 class="text-3xl font-bold mb-2">My Routine</h1>
+                <p class="text-gray-400">Your personalized 5-day split</p>
+            </header>
+
+            <div class="flex gap-2 overflow-x-auto pb-4 mb-6 custom-scrollbar" id="day-selector">
+                <!-- Populated by JS -->
+            </div>
+
+            <div class="glass-panel rounded-2xl p-6 relative">
+                <div class="flex justify-between items-center mb-6 border-b border-gray-700 pb-4">
+                    <h2 class="text-2xl font-bold text-white" id="current-workout-title">Select a day</h2>
+                </div>
+                
+                <div id="exercise-list" class="space-y-6">
+                    <!-- Populated by JS -->
+                </div>
+
+                <div class="mt-8 text-right">
+                    <button id="save-workout-btn" class="gradient-bg px-8 py-3 rounded-xl font-bold shadow-lg hover:shadow-xl hover:scale-105 transition-all opacity-50 cursor-not-allowed">
+                        <i class="fa-solid fa-check mr-2"></i> Finish & Log Workout
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- AI Trainer Tab -->
+        <div id="tab-ai-trainer" class="p-6 md:p-10 animate-fade-in hidden flex-1 flex flex-col h-full max-h-screen">
+            <header class="mb-6 flex justify-between items-end flex-shrink-0">
+                <div>
+                    <h1 class="text-3xl font-bold mb-2">AI Personal Trainer</h1>
+                    <p class="text-gray-400">Powered by Gemini. Ask for form checks, progression advice, or motivation.</p>
+                </div>
+                <button onclick="toggleApiSettings()" class="text-gray-400 hover:text-white transition-colors">
+                    <i class="fa-solid fa-gear text-xl"></i>
+                </button>
+            </header>
+
+            <!-- API Key Settings -->
+            <div id="api-settings" class="glass-panel p-6 rounded-2xl mb-6 hidden flex-shrink-0 animate-fade-in">
+                <h3 class="font-bold mb-2 text-blue-400"><i class="fa-solid fa-key mr-2"></i> Gemini API Configuration</h3>
+                <p class="text-sm text-gray-400 mb-4">Your key is stored locally in your browser. Get one free from Google AI Studio.</p>
+                <div class="flex gap-3">
+                    <input type="password" id="api-key-input" placeholder="AIzaSy..." class="flex-1 bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500 text-white">
+                    <button onclick="saveApiKey()" class="bg-blue-600 hover:bg-blue-500 px-6 py-2 rounded-lg font-semibold transition-colors">Save</button>
+                </div>
+            </div>
+
+            <!-- Chat Area -->
+            <div class="glass-panel rounded-2xl flex-1 flex flex-col overflow-hidden">
+                <div id="chat-messages" class="flex-1 overflow-y-auto p-6 space-y-4">
+                    <div class="chat-message ai p-4 max-w-[85%]">
+                        <div class="flex items-center gap-2 mb-2 font-semibold text-purple-400">
+                            <i class="fa-solid fa-robot"></i> Trainer
+                        </div>
+                        <div class="text-gray-200">
+                            What's up! I'm your AI personal trainer. I see your 5-day split. How are you feeling today? Need help adjusting weights, checking form tips, or a pep talk?
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="p-4 border-t border-gray-700 bg-gray-800/50">
+                    <form id="chat-form" class="flex gap-3">
+                        <input type="text" id="chat-input" placeholder="Ask your trainer something..." class="flex-1 bg-gray-900 border border-gray-700 rounded-xl px-5 py-3 focus:outline-none focus:border-purple-500 text-white transition-colors">
+                        <button type="submit" class="gradient-bg px-6 rounded-xl font-bold shadow-lg hover:shadow-xl transition-all flex items-center justify-center">
+                            <i class="fa-solid fa-paper-plane"></i>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Progress Tab -->
+        <div id="tab-progress" class="p-6 md:p-10 animate-fade-in hidden flex-1">
+            <header class="mb-8">
+                <h1 class="text-3xl font-bold mb-2">My Growth</h1>
+                <p class="text-gray-400">Track your volume and consistency over time</p>
+            </header>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div class="glass-panel p-6 rounded-2xl">
+                    <h3 class="text-xl font-bold mb-4">Total Volume History (kg)</h3>
+                    <div class="h-64">
+                        <canvas id="volumeChart"></canvas>
+                    </div>
+                </div>
+                
+                <div class="glass-panel p-6 rounded-2xl">
+                    <h3 class="text-xl font-bold mb-4">Recent Logs</h3>
+                    <div id="recent-logs" class="space-y-3 overflow-y-auto max-h-64 pr-2">
+                        <!-- Populated by JS -->
+                        <p class="text-gray-500 italic text-center py-8">No workouts logged yet. Go crush a session!</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>
