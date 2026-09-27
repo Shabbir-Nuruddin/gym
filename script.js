@@ -53,6 +53,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // UI Logic
 function switchTab(tabId) {
+    if(typeof playClick === 'function') playClick();
     document.querySelectorAll('main > div').forEach(el => {
         if(el.id.startsWith('tab-')) el.classList.add('hidden');
     });
@@ -111,6 +112,7 @@ function renderRoutineTabs() {
 }
 
 function selectDay(dayId) {
+    if(typeof playClick === 'function') playClick();
     currentDayId = dayId;
     renderRoutineTabs();
     
@@ -226,6 +228,7 @@ function saveWorkout() {
     workoutHistory.push(session);
     localStorage.setItem('auraHistory', JSON.stringify(workoutHistory));
     
+    if(typeof playSuccess === 'function') playSuccess();
     updateDashboard();
     selectDay(currentDayId);
     
@@ -395,4 +398,62 @@ function clearData() {
         if(currentDayId) selectDay(currentDayId);
         switchTab('dashboard');
     }
+}
+
+
+// ==========================================
+// SOUND EFFECTS & MUSIC
+// ==========================================
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+function playClick() {
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    const osc = audioCtx.createOscillator();
+    const gainNode = audioCtx.createGain();
+    
+    osc.type = 'square';
+    osc.frequency.setValueAtTime(100, audioCtx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+    
+    gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+    
+    osc.connect(gainNode);
+    gainNode.connect(audioCtx.destination);
+    
+    osc.start();
+    osc.stop(audioCtx.currentTime + 0.1);
+}
+
+function playSuccess() {
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    const osc = audioCtx.createOscillator();
+    const gainNode = audioCtx.createGain();
+    
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(40, audioCtx.currentTime + 0.5);
+    
+    gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+    
+    osc.connect(gainNode);
+    gainNode.connect(audioCtx.destination);
+    
+    osc.start();
+    osc.stop(audioCtx.currentTime + 0.5);
+}
+
+function toggleMusic() {
+    const audio = document.getElementById('bg-music');
+    const icon = document.getElementById('music-icon');
+    
+    if (audio.paused) {
+        audio.play();
+        icon.className = 'fa-solid fa-volume-high text-red-500';
+    } else {
+        audio.pause();
+        icon.className = 'fa-solid fa-volume-xmark text-gray-500';
+    }
+    playClick();
 }

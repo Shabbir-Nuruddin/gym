@@ -108,7 +108,10 @@
             <i class="fa-solid fa-fire text-xl text-red-600"></i>
             <h1 class="text-3xl font-bebas blood-text mt-1">AURA</h1>
         </div>
-        <div class="flex items-center gap-3">
+        <div class="flex items-center gap-4">
+            <button id="music-btn" onclick="toggleMusic()" class="text-gray-500 hover:text-red-500 transition-colors text-xl">
+                <i class="fa-solid fa-volume-xmark" id="music-icon"></i>
+            </button>
             <div class="text-right">
                 <div class="text-xs font-bold text-gray-500 uppercase tracking-widest">Level <span id="hdr-level" class="text-white">1</span></div>
             </div>
@@ -117,6 +120,12 @@
             </div>
         </div>
     </header>
+
+    <!-- Hidden Audio Player -->
+    <!-- Using an upbeat Synthwave creative commons radio stream as default -->
+    <audio id="bg-music" loop>
+        <source src="https://coderadio-admin.freecodecamp.org/radio/8000/radio.mp3" type="audio/mpeg">
+    </audio>
 
     <!-- Main Content -->
     <main class="flex-1 overflow-y-auto pb-safe px-4 py-6 w-full max-w-md mx-auto no-scrollbar">
