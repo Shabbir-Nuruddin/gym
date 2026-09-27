@@ -464,11 +464,11 @@ function playSuccess() {
 // MUSIC PLAYER & SOUND EFFECTS
 // ==========================================
 const playlist = [
-    { title: "Synthwave Radio", artist: "FreeCodeCamp", src: "https://coderadio-admin.freecodecamp.org/radio/8000/radio.mp3" },
-    { title: "Hardcore Workout 1", artist: "Local MP3", src: "1.mp3" },
-    { title: "Hardcore Workout 2", artist: "Local MP3", src: "2.mp3" },
-    { title: "Hardcore Workout 3", artist: "Local MP3", src: "3.mp3" }
+    { title: "AURA RADIO", artist: "FreeCodeCamp", src: "https://coderadio-admin.freecodecamp.org/radio/8000/radio.mp3" }
 ];
+for(let i = 1; i <= 100; i++) {
+    playlist.push({ title: "TRACK " + i, artist: "LOCAL MUSIC", src: i + ".mp3" });
+}
 let currentTrackIndex = 0;
 
 const audioPlayer = document.getElementById('bg-music');
@@ -549,7 +549,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('track-artist').innerText = playlist[0].artist;
 });
 
-const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+// duplicate removed
 
 
 // ==========================================
