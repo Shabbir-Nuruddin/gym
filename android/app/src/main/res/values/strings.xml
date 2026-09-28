@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">AuraGym</string>
+    <string name="title_activity_main">AuraGym</string>
+    <string name="package_name">com.aura.gym</string>
+    <string name="custom_url_scheme">com.aura.gym</string>
+</resources>
