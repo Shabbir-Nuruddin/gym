@@ -1,0 +1,34 @@
+{
+  "name": "gym",
+  "version": "1.0.0",
+  "description": "",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder -w"
+  },
+  "build": {
+    "appId": "com.aura.gym",
+    "productName": "Aura Gym",
+    "win": {
+      "target": "nsis",
+      "icon": "icon.png"
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Shabbir-Nuruddin/gym.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Shabbir-Nuruddin/gym/issues"
+  },
+  "homepage": "https://github.com/Shabbir-Nuruddin/gym#readme",
+  "devDependencies": {
+    "electron": "^44.4.5",
+    "electron-builder": "^26.15.3"
+  }
+}
