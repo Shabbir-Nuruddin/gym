@@ -168,6 +168,23 @@ function selectDay(dayId) {
 
 window.updateSet = function(exIndex, sIndex, field, value) {
     window.currentWorkoutSets[exIndex][sIndex][field] = value;
+    
+    // Auto-propagate weight to subsequent sets if it's the first time they are being filled
+    if (field === 'weight' && value !== '') {
+        const sets = window.currentWorkoutSets[exIndex];
+        const exerciseDiv = document.getElementById('exercise-list').children[exIndex];
+        const weightInputs = exerciseDiv ? exerciseDiv.querySelectorAll('.ex-weight') : [];
+        
+        for (let i = sIndex + 1; i < sets.length; i++) {
+            if (sets[i].weight === '') {
+                sets[i].weight = value;
+                if (weightInputs[i]) {
+                    weightInputs[i].value = value;
+                }
+            }
+        }
+    }
+    
     checkWorkoutValid();
 };
 
@@ -230,6 +247,15 @@ function saveWorkout() {
 
     workoutHistory.push(session);
     localStorage.setItem('auraHistory', JSON.stringify(workoutHistory));
+    
+    // Feedback
+    alert(`WORKOUT LOGGED! You crushed ${sessionVolume} KG of volume and gained +100 XP!`);
+    
+    // If we have an API key, get the AI to respond immediately
+    if (apiKey) {
+        const aiPrompt = `I just finished my ${dayData.name} workout! I lifted a total volume of ${sessionVolume} kg over ${workoutSeconds} seconds. Give me short, aggressive feedback, tell me if I'm making progress, and reward me for getting my XP!`;
+        generateAIResponse(aiPrompt);
+    }
     
     // Reset Timer
     if (workoutTimer) {
@@ -329,21 +355,10 @@ function saveApiKey() {
     alert('API Key saved!');
 }
 
-document.getElementById('chat-form').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const input = document.getElementById('chat-input');
-    const text = input.value.trim();
-    if(!text) return;
-
-    if(!apiKey) {
-        alert("Enter API Key in settings first.");
-        toggleApiSettings();
-        return;
-    }
-
+async function generateAIResponse(text) {
+    if(!apiKey) return;
+    
     addChatMessage('user', text);
-    input.value = '';
-
     chatHistory.push({ role: 'user', parts: [{ text: text }] });
 
     const loadingId = 'loading-' + Date.now();
@@ -370,13 +385,29 @@ document.getElementById('chat-form').addEventListener('submit', async (e) => {
         const reply = data.candidates[0].content.parts[0].text;
         
         chatHistory.push({ role: 'model', parts: [{ text: reply }] });
-        document.getElementById(loadingId).innerHTML = marked.parse(reply);
+        document.getElementById(loadingId).innerHTML = `<div class="prose prose-invert prose-sm">${marked.parse(reply)}</div>`;
     } catch(err) {
         document.getElementById(loadingId).innerHTML = `<span class="text-red-500 font-bold uppercase">Connection Failure.</span>`;
         chatHistory.pop();
     }
     
     scrollToBottom();
+}
+
+document.getElementById('chat-form').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const input = document.getElementById('chat-input');
+    const text = input.value.trim();
+    if(!text) return;
+
+    if(!apiKey) {
+        alert("Enter API Key in settings first.");
+        toggleApiSettings();
+        return;
+    }
+
+    input.value = '';
+    generateAIResponse(text);
 });
 
 function addChatMessage(role, htmlContent, id = null) {
