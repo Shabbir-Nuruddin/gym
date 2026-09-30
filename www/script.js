@@ -198,10 +198,12 @@ function checkWorkoutValid() {
     
     const btn = document.getElementById('save-workout-btn');
     if(hasValue) {
-        btn.classList.remove('opacity-50');
+        btn.className = 'w-full blood-bg p-5 rounded-md font-bebas text-2xl tracking-wider text-black transition-all transform active:scale-95 shadow-[0_0_15px_rgba(220,38,38,0.5)]';
+        btn.innerText = 'LOG WORKOUT & GAIN XP';
         btn.onclick = saveWorkout;
     } else {
-        btn.classList.add('opacity-50');
+        btn.className = 'w-full bg-gray-800 p-5 rounded-md font-bebas text-2xl tracking-wider text-gray-500 transition-all cursor-not-allowed';
+        btn.innerText = 'ENTER WEIGHTS TO LOG';
         btn.onclick = null;
     }
 }
